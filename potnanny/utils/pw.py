@@ -1,7 +1,13 @@
-from passlib.hash import argon2
+import os
+import scrypt
+import hashlib
 
-def hash_password(passwd):
-    return argon2.hash(passwd)
+MYSALT = os.getenv('POTNANNY_SECRET', os.urandom(24))
+
+def hash_password(password):
+    secret = scrypt.hash(password, MYSALT)
+    return hashlib.sha256(secret).hexdigest()
 
 def verify_password(guessed, hashed):
-    return argon2.verify(guessed, hashed)
+    secret = hash_password(guessed)
+    return secret == hashed

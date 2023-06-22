@@ -106,9 +106,9 @@ async def init_tables():
     # create the default admin user
     try:
         attrs = {
-            'name': 'potnanny',
+            'name': 'admin',
             'roles': 'admin,user',
-            'password': hash_password('growgreen!'),
+            'password': hash_password('potnanny!'),
         }
         user = User(**attrs)
         await user.insert()

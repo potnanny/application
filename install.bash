@@ -9,7 +9,7 @@
 
 echo "Installing requirements..."
 sudo apt update -y
-sudo apt install build-essential libffi-dev libssl-dev python3-dev python3-pip sqlite3 git -y
+sudo apt install build-essential libssl-dev python3-dev python3-pip sqlite3 git -y
 # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 echo "Creating groups..."
@@ -18,15 +18,15 @@ sudo groupadd -f potnanny
 
 echo "Creating directories..."
 mkdir $HOME/potnanny
-mkdir $HOME/potnanny/plugins
 
 
 echo "Cloning plugin repository..."
-cd $HOME/potnanny/plugins
-git clone https://github.com/potnanny/base-plugins.git
+cd $HOME/potnanny
+git clone https://github.com/potnanny/plugins.git
 
 
 echo "Installing application..."
+sudo pip3 install --upgrade pip
 sudo pip3 install potnanny
 
 
