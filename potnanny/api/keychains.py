@@ -1,10 +1,12 @@
 import datetime
+import logging
 from aiohttp import web
 from potnanny.models.keychain import Keychain, KeychainSchema
 from potnanny.models.interface import ObjectInterface
 from .decorators import login_required
 
 routes = web.RouteTableDef()
+logger = logging.getLogger(__name__)
 
 @routes.get('/api/v1.0/keychains')
 @login_required
@@ -25,12 +27,14 @@ async def create(request):
     jsondata = await request.json()
     schema = KeychainSchema()
     data = schema.load(jsondata)
+
     try:
         obj = Keychain(**data)
         await obj.insert()
         return web.json_response({
             "status": "ok", "msg": obj.as_dict()}, status=201)
     except Exception as x:
+        logger.warning(x)
         return web.json_response({
             "status": "error", "msg": str(x) }, status=500)
 

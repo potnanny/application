@@ -1,27 +1,54 @@
 import asyncio
 import re
 import logging
+from potnanny.utils.shell import run
 
 logger = logging.getLogger(__name__)
 DEFAULT_PATH = "/etc/wpa_supplicant/wpa_supplicant.conf"
+DEFAULT_SOCK = "/var/run/wpa_supplicant"
+
+
+async def current_wifi():
+    """
+    get name of currently connected wifi
+    """
+
+    cmd = 'sudo iwgetid -r'
+    try:
+        rval, stdout, stderr = await run(cmd);
+        if rval == 0:
+            network = stdout.decode().strip()
+            return network
+    except:
+        logger.warning(f"unexpected error: {stderr.decode().strip()}")
+        pass
+
+    return None
+
 
 async def wifi_networks() -> list:
     """
     Scan for wifi network info. returns a list of dicts
     """
 
+    results = []
+    current = await current_wifi()
     cmd = 'sudo iwlist wlan0 scan'
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
 
-    stdout, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        logger.warning(stderr.decode())
-        return []
+    try:
+        rval, stdout,stderr = await run(cmd)
+        if rval != 0:
+            logger.warning(f"unexpected error: {stderr.decode().strip()}")
+            return []
 
-    results = parse_wifi_results(stdout.decode())
+        raw = stdout.decode().strip()
+        results = parse_wifi_results(raw)
+        for r in results:
+            if 'essid' in r and r['essid'] == current:
+                r['in_use'] = True
+    except Exception as x:
+        logger.warning(str(x))
+
     return results
 
 
@@ -32,25 +59,23 @@ async def wpa_networks() -> dict:
 
     data = {}
     cmd = "wpa_cli list_networks"
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
+    try:
+        rval, stdout, stderr = await run(cmd)
+        if proc.returncode != 0:
+            logger.warning(stderr.decode().strip())
+            return {}
 
-    stdout, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        logger.warning(stderr.decode())
-        return {}
+        for line in stdout.decode().splitlines():
+            if re.search(r'^(Selected interface|network id)', line):
+                continue
+            if re.search(r'^\s*$', line):
+                continue
 
-    for line in stdout.decode().splitlines():
-        if re.search(r'^(Selected interface|network id)', line):
-            continue
-        if re.search(r'^\s*$', line):
-            continue
-
-        atoms = line.split()
-        if len(atoms) >= 2:
-            data[atoms[0]] = atoms[1]
+            atoms = line.split()
+            if len(atoms) >= 2:
+                data[atoms[0]] = atoms[1]
+    except:
+        pass
 
     return data
 
@@ -72,15 +97,13 @@ async def wpa_drop_network(ssid: str) -> tuple:
         return (1, f"network ssid {ssid} not found")
 
     cmd = f"sudo wpa_cli remove_network {target}"
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
-
-    stdout, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        logger.warning(stderr.decode())
-        return (proc.returncode, f"unexpected error: {stderr.decode()}")
+    try:
+        rval, stdout, stderr = await run(cmd)
+        if rval != 0:
+            logger.warning(stderr.decode())
+            return (rval, f"unexpected error: {stderr.decode()}")
+    except:
+        pass
 
     return (0, "ok")
 
@@ -116,7 +139,7 @@ async def append_to_wpaconf(entry: str, path: str = DEFAULT_PATH):
     Append a network entry block to the wpa_supplicant.conf file
     """
 
-    cmd = f"echo '{entry}' | sudo tee -a {path}"
+    cmd = f'printf "\n{entry}\n" | sudo tee -a {path}'
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -131,24 +154,24 @@ async def append_to_wpaconf(entry: str, path: str = DEFAULT_PATH):
 
 
 def parse_wifi_results(txt: str) -> list:
-    results = []
+    results = {}
     bufr = []
     for line in txt.splitlines():
         if re.search(r'Cell \d+', line):
             if bufr:
                 cell = extract_network_data(bufr)
-                if cell:
-                    results.append(cell)
+                if cell and 'essid' in cell:
+                    results[cell['essid']] = cell
                 bufr = []
         bufr.append(line)
 
     # last check of the remaining buffer
     if bufr:
         cell = extract_network_data(bufr)
-        if cell:
-            results.append(cell)
+        if cell and 'essid' in cell:
+            results[cell['essid']] = cell
 
-    return results
+    return list(results.values())
 
 
 def extract_network_data(bufr: list) -> dict:
@@ -164,6 +187,7 @@ def extract_network_data(bufr: list) -> dict:
         'encryption': re.compile(r'Encryption key:(.+)'),
     }
     results = {}
+
     for line in bufr:
         for key, regex in lookups.items():
             match = regex.search(line)

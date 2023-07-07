@@ -12,9 +12,9 @@ A plugin class that will decode BLE advertisement data must have a non-async met
 ```
 import re
 from potnanny.plugins import DevicePlugin
-from potnanny.plugins.mixins import FingerprintReader
+from potnanny.plugins.mixins import FingerprintMixin
 
-class MyDevice(DevicePlugin, FingerprintReader):
+class MyDevice(DevicePlugin, FingerprintMixin):
     fingerprint = {
         'address': re.compile('^A4:C1:38', re.IGNORECASE),
         'name': re.compile('^GVH', re.IGNORECASE) }
@@ -37,9 +37,9 @@ import re
 import asyncio
 from bleak import BleakClient
 from potnanny.plugins import DevicePlugin
-from potnanny.plugins.mixins import FingerprintReader
+from potnanny.plugins.mixins import FingerprintMixin
 
-class MyDevice(DevicePlugin, FingerprintReader):
+class MyDevice(DevicePlugin, FingerprintMixin):
     fingerprint = {
         'address': re.compile('^A4:C1:38', re.IGNORECASE),
         'name': re.compile('^GVH', re.IGNORECASE) }

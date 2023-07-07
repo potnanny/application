@@ -1,7 +1,8 @@
 import requests
 import asyncio
+import aiohttp
 
-def has_www(url='http://www.google.com'):
+def has_www(url='http://www.example.com'):
     """
     Check for internet connectivity
     args:
@@ -20,7 +21,7 @@ def has_www(url='http://www.google.com'):
     return False
 
 
-async def aio_has_www(url='http://www.google.com'):
+async def aio_has_www(url='http://www.example.com'):
     """
     Asyncio compatible way to check for internet connectivity
     args:
@@ -29,13 +30,10 @@ async def aio_has_www(url='http://www.google.com'):
         - bool
     """
 
-    try:
-        loop = asyncio.get_event_loop()
-        future = loop.run_in_executor(None,
-            has_www, url)
-        resp = await future
-        return resp
-    except:
-        pass
+    success = False
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                success = True
 
-    return False
+    return success

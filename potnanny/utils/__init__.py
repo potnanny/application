@@ -11,6 +11,7 @@ from .plugins import load_plugins
 from .shell import run
 from .pw import hash_password, verify_password
 from .eval import evaluate
+from .serial import load_serial_number
 
 __all__ = [
     utcnow,
@@ -29,4 +30,5 @@ __all__ = [
     run,
     hash_password, verify_password,
     evaluate,
+    load_serial_number
 ]

@@ -6,7 +6,7 @@ from sqlalchemy import (Column, Integer, Text, String, Float, Boolean,
     DateTime, ForeignKey, func)
 from sqlalchemy.orm import relationship
 from potnanny.database import Base
-from potnanny.plugins.mixins import PluginInterfaceMixin
+from potnanny.plugins.mixins import InterfaceMixin
 from potnanny.controllers.trigger import (open_action_triggers,
     new_action_trigger)
 from potnanny.utils import evaluate
@@ -17,7 +17,7 @@ from .ext import MutableDict, JSONEncodedDict
 logger = logging.getLogger(__name__)
 
 
-class Action(Base, BaseMixin, PluginInterfaceMixin):
+class Action(Base, BaseMixin, InterfaceMixin):
     __tablename__ = 'actions'
 
     id = Column(Integer, primary_key=True)
@@ -69,14 +69,16 @@ class Action(Base, BaseMixin, PluginInterfaceMixin):
         Accept measurement data as input, evaluate, and perform actions
         as required:
         args:
-            - dict (measurement data
+            - dict (measurement data from a device)
         returns:
         """
 
         if self._precheck(data) is not True:
+            logger.debug(f"data {data} is not acceptable. skipping")
             return
 
         if await self._existing_trigger():
+            logger.debug(f"data {data} has an existing trigger. skipping")
             return
 
         equation = "%0.1f %s %s" % (
@@ -85,13 +87,26 @@ class Action(Base, BaseMixin, PluginInterfaceMixin):
                 self.attributes['threshold'])
 
         if evaluate(equation) is True:
-            result = await self.plugin.input(data)
+            try:
+                klass = self.class_by_name(self.interface)
+                if klass is None:
+                    return
+
+                ifc = klass(**{
+                    'parent_id': self.id,
+                    'parent_name': self.name
+                })
+                result = await ifc.input(data)
+            except Exception as x:
+                logger.debug(f"OH NO! {x}")
+                return
+
             if ('sleep_minutes' in self.attributes and
                 self.attributes['sleep_minutes'] > 0):
                 try:
-                    await create_action_trigger(self.id)
+                    await new_action_trigger(self.id)
                 except:
-                    pass
+                    logger.warning(f"Failed to create action trigger for {self.name}")
 
     def _precheck(self, data):
         """

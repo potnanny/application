@@ -15,7 +15,8 @@ class KeychainSchema(Schema):
         unknown = EXCLUDE
 
     name = fields.String()
-    attributes = fields.Dict(allow_none=True),
+    attributes = fields.Dict(allow_none=True)
+    protected = fields.Boolean(allow_none=True)
 
 
 class Keychain(Base, BaseMixin):

@@ -114,3 +114,17 @@ async def init_tables():
         await user.insert()
     except:
         pass
+
+    try:
+        opts = {
+            'name': 'limits',
+            'protected': True,
+            'attributes': {
+                'rlimit': 1,
+                'dlimit': 4
+            }
+        }
+        kc = Keychain(**opts)
+        await kc.insert()
+    except:
+        pass

@@ -7,7 +7,6 @@ from potnanny.plugins import (BluetoothDevicePlugin, GPIODevicePlugin,
     PipelinePlugin, ActionPlugin)
 from .decorators import login_required
 
-
 routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 

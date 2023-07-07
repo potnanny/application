@@ -7,16 +7,21 @@ The basic installation allows you to monitor 1 grow room, with 5 devices.
 
 ## Description
 Potnanny provides a simple dashboard for monitoring and insight into your grow environment.
+
 <img src="/docs/screenshots/dashboard.png" width="400">
 
 Clicking on any of the dashboard values will show graph trends.
+
 <img src="/docs/screenshots/graph.png" width="400">
 
 ## Advanced Controls
 Beyond basic monitoring, Potnanny also makes it possible to configure Schedules and Smart Controls of the bluetooth power outlets.
-A Smart Control is like saying "When the humidiy reading of a sensor is over 65%, turn the fan outlet on".
-- Turns *dumb* devices (humidifiers, fans, etc) into *smart* devices.
-- Saves energy. Turning fans and dehumidifiers on only when needed reduces energy consumption.
+
+A Smart Control is like saying "When the humidity reading of a sensor is over 65%, turn the dehumidifier outlet on".
+
+Potnanny's Advanced Controls:
+- Turn *dumb* devices (humidifiers, fans, etc) into *smart* devices.
+- Saves energy. Turning fans and dehumidifiers on only when actually needed reduces energy consumption.
 - Automate your irrigation, ventilation, and temperature controls to maintain an ideal growing environment.
 
 ## Reliable
@@ -44,7 +49,8 @@ See the Plugin Documentation for more.
 
 ## Hardware Requirements
 Potnanny was written specifically targeting the low-priced Raspberry Pi Zero W.
-<img src="/docs/screenshots/rpizerow.png" width="400">
+
+<img src="/docs/screenshots/rpizerow.png" width="300">
 
 But it will work on most models with integrated WiFi and Bluetooth.
 - Raspberry Pi Zero W

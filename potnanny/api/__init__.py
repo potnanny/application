@@ -22,6 +22,8 @@ from .controls import routes as control_routes
 from .schedules import routes as schedule_routes
 from .utils import routes as util_routes
 from .plugins import routes as plugin_routes
+from .tests import routes as test_routes
+from .wifi import routes as wifi_routes
 
 
 logger = logging.getLogger(__name__)
@@ -40,7 +42,12 @@ def init_api():
     # session cookie storage
     key = Fernet.generate_key()
     secret = base64.urlsafe_b64decode(key)
-    setup(app, EncryptedCookieStorage(secret, cookie_name='POTNANNY_API'))
+    setup(app, EncryptedCookieStorage(secret,
+        cookie_name='POTNANNY_API',
+        samesite="None",
+        # secure=True
+        )
+    )
 
     # plug in jinja template handling
     aiohttp_jinja2.setup(app,
@@ -61,10 +68,11 @@ def init_api():
     app.add_routes(action_routes)
     app.add_routes(control_routes)
     app.add_routes(schedule_routes)
+    app.add_routes(test_routes)
+    app.add_routes(wifi_routes)
 
 
-
-    # configure CORS for all known routes
+    logger.debug("Building CORS routes")
     cors = aiohttp_cors.setup(app, defaults={
         "*": aiohttp_cors.ResourceOptions(
             allow_credentials=True,
@@ -72,8 +80,6 @@ def init_api():
             allow_headers="*",
         )
     })
-
-    logger.debug("Building CORS routes")
     for route in list(app.router.routes()):
         cors.add(route)
 

@@ -75,7 +75,7 @@ class ObjectInterface:
             items = [item[0] for item in results.all()]
             return items
         except:
-            return None
+            return []
 
 
     async def update(self, pk, data):

@@ -32,7 +32,7 @@ DEFAULT_GRAPH = {
 
 async def room_graph(pk: int, mtype: str, hours: int = 12):
     """
-    Get graph data for  room
+    Get graph data for room
     """
 
     now = datetime.datetime.utcnow()
@@ -75,6 +75,7 @@ async def room_graph(pk: int, mtype: str, hours: int = 12):
                 'label': r[1],
                 'data': [] }
         dt = iso_from_sqlite(r[4])
+
         if dt not in labels:
             labels.append(dt)
 
@@ -83,8 +84,10 @@ async def room_graph(pk: int, mtype: str, hours: int = 12):
             'x': dt,
         })
 
-    graph['data']['labels'] = sorted(list(set(labels)))
+    # graph['data']['labels'] = sorted(list(set(labels)))
+    graph['data']['labels'] = sorted(labels)
     graph['data']['datasets'] = [v for v in data.values()]
+
     return graph
 
 

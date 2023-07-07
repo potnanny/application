@@ -1,6 +1,6 @@
 from .base import (DevicePlugin, ActionPlugin, PipelinePlugin,
     BluetoothDevicePlugin, GPIODevicePlugin) 
-from .mixins import PluginInterfaceMixin, FingerprintReader
+from .mixins import PluginMixin, FingerprintMixin
 
 __all__ = [DevicePlugin, BluetoothDevicePlugin, GPIODevicePlugin, ActionPlugin, 
-    PipelinePlugin, PluginInterfaceMixin, FingerprintReader]
+    PipelinePlugin, PluginMixin, FingerprintMixin]

@@ -4,7 +4,7 @@ from sqlalchemy import (Column, Integer, DateTime, Unicode, Boolean,
     UnicodeText, ForeignKey, func)
 from sqlalchemy.orm import relationship
 from potnanny.database import Base
-from potnanny.plugins.mixins import PluginInterfaceMixin
+from potnanny.plugins.mixins import PluginMixin
 from .mixins import BaseMixin
 from .ext import MutableDict, JSONEncodedDict
 
@@ -22,7 +22,7 @@ class DeviceSchema(Schema):
     attributes = fields.Dict(allow_none=True)
 
 
-class Device(Base, BaseMixin, PluginInterfaceMixin):
+class Device(Base, BaseMixin, PluginMixin):
     __tablename__ = 'devices'
 
     id = Column(Integer, primary_key=True)

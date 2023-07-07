@@ -6,7 +6,7 @@ async def run(cmd: str):
     args:
         command string
     returns:
-        tuple (stdout, stderr)
+        tuple (exit-code, stdout, stderr)
     """
 
     proc = await asyncio.create_subprocess_shell(
@@ -15,4 +15,4 @@ async def run(cmd: str):
         stderr=asyncio.subprocess.PIPE)
 
     stdout, stderr = await proc.communicate()
-    return (stdout, stderr)
+    return (proc.returncode, stdout, stderr)
