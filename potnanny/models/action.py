@@ -10,14 +10,14 @@ from potnanny.plugins.mixins import InterfaceMixin
 from potnanny.controllers.trigger import (open_action_triggers,
     new_action_trigger)
 from potnanny.utils import evaluate
-from .mixins import BaseMixin
-from .ext import MutableDict, JSONEncodedDict
+from potnanny.models.mixins import CRUDMixin
+from potnanny.models.ext import MutableDict, JSONEncodedDict
 
 
 logger = logging.getLogger(__name__)
 
 
-class Action(Base, BaseMixin, InterfaceMixin):
+class Action(Base, CRUDMixin, InterfaceMixin):
     __tablename__ = 'actions'
 
     id = Column(Integer, primary_key=True)
@@ -57,7 +57,8 @@ class Action(Base, BaseMixin, InterfaceMixin):
             now = datetime.datetime.utcnow()
             start = now - datetime.timedelta(minutes=minutes)
             results = await open_action_triggers(self.id, start)
-            return results
+            if results:
+                return True
         except:
             pass
 
@@ -73,40 +74,41 @@ class Action(Base, BaseMixin, InterfaceMixin):
         returns:
         """
 
+        success = False
+
         if self._precheck(data) is not True:
             logger.debug(f"data {data} is not acceptable. skipping")
+            return
+
+        try:
+            equation = "%0.1f %s %s" % (
+                float(data['value']),
+                self.attributes['condition'],
+                self.attributes['threshold'])
+            if evaluate(equation) is not True:
+                return
+        except:
             return
 
         if await self._existing_trigger():
             logger.debug(f"data {data} has an existing trigger. skipping")
             return
 
-        equation = "%0.1f %s %s" % (
-                float(data['value']),
-                self.attributes['condition'],
-                self.attributes['threshold'])
+        try:
+            klass = self.interface_class(self.interface)
+            obj = klass(action_id=self.id, action_name=self.name)
+            success = await obj.input(data)
+        except Exception as x:
+            logger.debug(f"Action interface plugin fail: {x}")
+            return
 
-        if evaluate(equation) is True:
-            try:
-                klass = self.class_by_name(self.interface)
-                if klass is None:
-                    return
-
-                ifc = klass(**{
-                    'parent_id': self.id,
-                    'parent_name': self.name
-                })
-                result = await ifc.input(data)
-            except Exception as x:
-                logger.debug(f"OH NO! {x}")
-                return
-
-            if ('sleep_minutes' in self.attributes and
+        try:
+            if (success and 'sleep_minutes' in self.attributes and
                 self.attributes['sleep_minutes'] > 0):
-                try:
-                    await new_action_trigger(self.id)
-                except:
-                    logger.warning(f"Failed to create action trigger for {self.name}")
+                await new_action_trigger(self.id)
+        except Exception as x:
+            logger.warning(f"Failed to create action trigger for {self.name}")
+
 
     def _precheck(self, data):
         """

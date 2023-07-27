@@ -43,7 +43,7 @@ async def create(request):
         data['password'] = hash_password(data['password'])
 
     try:
-        obj = Keychain(**data)
+        obj = User(**data)
         await obj.insert()
         return web.json_response({
             "status": "ok", "msg": obj.as_dict()}, status=201)

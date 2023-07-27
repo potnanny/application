@@ -3,7 +3,7 @@ from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
     Boolean, ForeignKey, func)
 from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from potnanny.database import Base
-from .mixins import BaseMixin
+from potnanny.models.mixins import CRUDMixin
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class UserSchema(Schema):
     roles = fields.String(allow_none=True)
 
 
-class User(Base, BaseMixin):
+class User(Base, CRUDMixin):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)

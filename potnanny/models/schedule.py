@@ -8,8 +8,8 @@ from sqlalchemy import (Column, Integer, Unicode, DateTime, ForeignKey,
 from sqlalchemy.orm import relationship
 from potnanny.utils import utcnow
 from potnanny.database import Base
-from .mixins import BaseMixin
-from .ext import MutableDict, JSONEncodedDict
+from potnanny.models.mixins import CRUDMixin
+from potnanny.models.ext import MutableDict, JSONEncodedDict
 from potnanny.models.weekday import WeekdayMap
 from potnanny.controllers.outlet import switch_device_outlet
 
@@ -28,7 +28,7 @@ class ScheduleSchema(Schema):
     days = fields.Integer(allow_none=False)
 
 
-class Schedule(Base, BaseMixin):
+class Schedule(Base, CRUDMixin):
     """
     Time is like: "13:30" (24h/UTC based)
     Days is an INT, based on:

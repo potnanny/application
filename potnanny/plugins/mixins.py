@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class InterfaceMixin:
     """
-    Many Models have an "interface" attribute, which is a text reference to
+    Many Models have an "interface" attribute, which is a string reference to
     a plugin class. This mixin searches for the actual plugin class
     """
 
@@ -51,7 +51,7 @@ class PluginMixin(InterfaceMixin):
 
         try:
             klass = self.interface_class(self.interface)
-            self._plugin = klass(self.attributes)
+            self._plugin = klass(**self.attributes)
         except:
             pass
 

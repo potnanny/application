@@ -2,13 +2,13 @@ import logging
 from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
     ForeignKey, Boolean, func)
 from potnanny.database import Base
-from .mixins import BaseMixin
+from potnanny.models.mixins import CRUDMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class Trigger(Base, BaseMixin):
+class Trigger(Base, CRUDMixin):
     __tablename__ = 'triggers'
 
     id = Column(Integer, primary_key=True)

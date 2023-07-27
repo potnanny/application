@@ -1,9 +1,5 @@
 import logging
-import datetime
 from aiohttp import web
-from sqlalchemy.future import select
-from sqlalchemy import func
-from sqlalchemy.sql import text
 from potnanny.utils import iso_from_sqlite
 from potnanny.models.room import Room, RoomSchema
 from potnanny.models.interface import ObjectInterface
@@ -37,10 +33,10 @@ async def create(request):
     data = schema.load(jsondata)
 
     try:
-        object = Room(**data)
-        await object.insert()
+        obj = Room(**data)
+        await obj.insert()
         return web.json_response({
-            "status": "ok", "msg": object.as_dict()}, status=201)
+            "status": "ok", "msg": obj.as_dict()}, status=201)
     except Exception as x:
         return web.json_response({
             "status": "error", "msg": str(x) }, status=500)

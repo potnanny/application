@@ -9,8 +9,8 @@ from sqlalchemy.orm import relationship
 from potnanny.database import Base
 from potnanny.controllers.outlet import switch_device_outlet
 from potnanny.utils import evaluate
-from .mixins import BaseMixin
-from .ext import MutableDict, JSONEncodedDict
+from potnanny.models.mixins import CRUDMixin
+from potnanny.models.ext import MutableDict, JSONEncodedDict
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class ControlSchema(Schema):
     attributes = fields.Dict(allow_none=True)
 
 
-class Control(Base, BaseMixin):
+class Control(Base, CRUDMixin):
     __tablename__ = 'controls'
 
     id = Column(Integer, primary_key=True)

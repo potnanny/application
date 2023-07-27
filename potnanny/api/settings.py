@@ -1,7 +1,7 @@
 from aiohttp import web
 from potnanny.models.keychain import Keychain
 from potnanny.models.interface import ObjectInterface
-from marshmallow import Schema, fields, validate, EXCLUDE, INCLUDE
+from marshmallow import Schema, fields, validate, EXCLUDE
 from .decorators import login_required
 
 routes = web.RouteTableDef()

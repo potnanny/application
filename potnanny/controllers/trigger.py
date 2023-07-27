@@ -17,14 +17,10 @@ async def open_action_triggers(action_id: int, start: datetime.datetime):
     )
 
     results = await execute_statement(stmt)
-    rows = results.all()
-    if len(rows):
-        return True
-    else:
-        return False
+    return results.all()
 
 
-async def new_action_trigger(action_id: int):
+async def new_action_trigger(action_id: int, message: str = ""):
     """
     Creat a new trigger for an action
     """
@@ -32,6 +28,7 @@ async def new_action_trigger(action_id: int):
     now = datetime.datetime.utcnow().replace(microsecond=0)
     t = Trigger(
         action_id=action_id,
+        message=message,
         created=now,
     )
     await t.insert()

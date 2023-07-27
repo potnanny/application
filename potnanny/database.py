@@ -96,10 +96,10 @@ async def init_tables():
             'polling_interval': 10,
             'plugin_path': os.path.expanduser('~/potnanny/plugins'),
             'leaf_offset': -2,
-            'storage_days': 7,
+            'storage_days': 5,
         }
-        key = Keychain(name='settings', attributes=attrs, protected=True)
-        await key.insert()
+        kc = Keychain(name='settings', attributes=attrs, protected=True)
+        await kc.insert()
     except:
         pass
 
@@ -117,11 +117,11 @@ async def init_tables():
 
     try:
         opts = {
-            'name': 'limits',
+            'name': 'features',
             'protected': True,
             'attributes': {
-                'rlimit': 1,
-                'dlimit': 4
+                'room_limit': 1,
+                'device_limit': 4
             }
         }
         kc = Keychain(**opts)

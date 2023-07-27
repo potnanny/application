@@ -3,8 +3,8 @@ from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, String, Float, DateTime,
     ForeignKey, PickleType, Text, Boolean, func)
 from potnanny.database import Base
-from .mixins import BaseMixin
-from .ext import MutableDict, JSONEncodedDict
+from potnanny.models.mixins import CRUDMixin
+from potnanny.models.ext import MutableDict, JSONEncodedDict
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class KeychainSchema(Schema):
     protected = fields.Boolean(allow_none=True)
 
 
-class Keychain(Base, BaseMixin):
+class Keychain(Base, CRUDMixin):
     """Store named info in a key-value pair."""
 
     __tablename__ = 'keychains'

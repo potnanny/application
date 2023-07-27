@@ -5,7 +5,7 @@ from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
     ForeignKey, func)
 from sqlalchemy.orm import relationship
 from potnanny.database import Base
-from .mixins import BaseMixin
+from potnanny.models.mixins import CRUDMixin
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class RoomSchema(Schema):
     notes = fields.String(allow_none=True)
 
 
-class Room(Base, BaseMixin):
+class Room(Base, CRUDMixin):
     __tablename__ = 'rooms'
 
     id = Column(Integer, primary_key=True)

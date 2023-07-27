@@ -5,11 +5,9 @@ import potnanny.database as db
 from potnanny.locks import LOCKS
 from sqlalchemy.inspection import inspect
 
-
 logger = logging.getLogger(__name__)
 
-
-class BaseMixin(object):
+class CRUDMixin(object):
     """
     Adds async CRUD functionality to our base sqlalchemy models
     """

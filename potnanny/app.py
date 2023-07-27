@@ -1,8 +1,5 @@
-import re
-import os
 import asyncio
 import logging
-import datetime
 import signal
 import ssl
 import potnanny.database as db

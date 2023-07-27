@@ -1,6 +1,6 @@
 import logging
 from aiohttp import web
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
+from marshmallow import Schema, fields, EXCLUDE
 from potnanny.models.control import Control
 from potnanny.models.interface import ObjectInterface
 from .decorators import login_required

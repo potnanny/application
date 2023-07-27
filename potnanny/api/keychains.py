@@ -84,7 +84,7 @@ async def delete(request):
     if obj.protected is True:
         return web.json_response({
             "status": "error",
-            "msg": f"A protected keychain cannot be removed."
+            "msg": "A protected keychain cannot be removed."
         }, status=404)
 
     await ObjectInterface(Keychain).delete(pk)

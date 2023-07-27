@@ -3,7 +3,7 @@ from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, Float, DateTime,
     ForeignKey, func)
 from potnanny.database import Base
-from .mixins import BaseMixin
+from potnanny.models.mixins import CRUDMixin
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class MeasurementSchema(Schema):
     device_id = fields.Integer(allow_none=False)
 
 
-class Measurement(Base, BaseMixin):
+class Measurement(Base, CRUDMixin):
     __tablename__ = 'measurements'
 
     id = Column(Integer, primary_key=True)

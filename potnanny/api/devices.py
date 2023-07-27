@@ -1,8 +1,8 @@
+import logging
 from aiohttp import web
 from potnanny.models.device import Device, DeviceSchema
 from potnanny.models.interface import ObjectInterface
 from potnanny.controllers.device import get_device_mtypes
-from potnanny.controllers.poll import Poller
 from potnanny.controllers.outlet import switch_device_outlet
 from potnanny.controllers.worker import Worker
 from potnanny.controllers.graph import device_graph
@@ -10,6 +10,7 @@ from potnanny.locks import LOCKS
 from .decorators import login_required
 
 routes = web.RouteTableDef()
+logger = logging.getLogger(__name__)
 
 @routes.get('/api/v1.0/devices')
 @login_required
@@ -177,13 +178,13 @@ async def get_keycode(request):
 async def graph(request):
     pk = int(request.match_info['pk'])
     mtype = request.rel_url.query.get('measurement', None)
-    hours = int(request.rel_url.query.get('hours', 8))    
+    hours = int(request.rel_url.query.get('hours', 8))
 
-    graph = await device_graph(pk, hours, mtype)
-    if not graph:
+    mygraph = await device_graph(pk, hours, mtype)
+    if not mygraph:
         return web.json_response({
             "status": "error", "msg": "no data"},
             status=404)
 
     return web.json_response({
-        "status": "ok", "msg": graph}, status=200)
+        "status": "ok", "msg": mygraph}, status=200)

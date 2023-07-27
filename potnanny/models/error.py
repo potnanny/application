@@ -2,13 +2,13 @@ import logging
 from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
     ForeignKey, Boolean, func)
 from potnanny.database import Base
-from .mixins import BaseMixin
+from potnanny.models.mixins import CRUDMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class Error(Base, BaseMixin):
+class Error(Base, CRUDMixin):
     __tablename__ = 'errors'
 
     id = Column(Integer, primary_key=True)

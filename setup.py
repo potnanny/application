@@ -1,6 +1,6 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
@@ -35,7 +35,7 @@ setuptools.setup(
         'sqlalchemy==2.0.16',
     ],
     package_data = {
-        '': ['*.html', '*.css', '*.js'],
+        '': ['*.html', '*.css', '*.js', '*.woff2'],
     },
     entry_points = {
         'console_scripts': [

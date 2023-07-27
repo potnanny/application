@@ -3,7 +3,6 @@
 
 Potnanny turns your Raspberry Pi into powerful grow-room automation system
 using inexpensive, off-the-shelf Bluetooth sensors, power outlets, and other devices.
-The basic installation allows you to monitor 1 grow room, with 5 devices.
 
 ## Description
 Potnanny provides a simple dashboard for monitoring and insight into your grow environment.
@@ -26,9 +25,6 @@ Potnanny's Advanced Controls:
 
 ## Reliable
 Potnanny does not rely on WiFi or cloud-connectivity. So even if your internet goes down, Potnanny will continue to work to control your environment. Once your Potnanny system is configured the way you want, it is very much a *set it and forget it* system.
-
-## Hotspot
-Most users will want to connect their Potnanny controller to their home WiFi network. But, If your grow is in a remote area without WiFi, Potnanny will automatically become its own WiFi hotspot (SSID=PNCTRL) you can connect to with a mobile device. Log into the system with your phone's web browser.
 
 ## Supported Bluetooth Devices
 This list includes only hygrometers, soil sensors, and power outlets that we have tested and found to have good, stable communication.
@@ -76,5 +72,5 @@ potnanny start
 ```
 
 ## Login
-Using a web browser, connect to "http://potnanny.local"
+Using a web browser, connect to "https://potnanny.local"
 The initial login/password is set to "admin/potnanny!". Please secure your system and reset the password as soon as you log in for the first time.

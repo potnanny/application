@@ -9,7 +9,6 @@ from potnanny.utils import resolve_path
 
 logger = logging.getLogger(__name__)
 
-
 def load_plugins(path):
     """
     Load plugins from named path
@@ -22,7 +21,7 @@ def load_plugins(path):
     logger.debug("Loading plugins from %s" % path)
     if not os.path.exists(path):
         raise IOError("Plugin path '%s' does not exist" % path)
-        
+
     for dir, subdirs, flist in os.walk(path):
         subdirs[:] = [ d for d in subdirs if not d.startswith(forbidden) ]
 

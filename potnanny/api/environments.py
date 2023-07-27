@@ -1,5 +1,4 @@
 import logging
-import datetime
 from aiohttp import web
 from potnanny.controllers.environment import (get_environments,
     get_room_environments)

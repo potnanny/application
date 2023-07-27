@@ -5,8 +5,8 @@ from sqlalchemy import (Column, Integer, DateTime, Unicode, Boolean,
 from sqlalchemy.orm import relationship
 from potnanny.database import Base
 from potnanny.plugins.mixins import PluginMixin
-from .mixins import BaseMixin
-from .ext import MutableDict, JSONEncodedDict
+from potnanny.models.mixins import CRUDMixin
+from potnanny.models.ext import MutableDict, JSONEncodedDict
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class DeviceSchema(Schema):
     attributes = fields.Dict(allow_none=True)
 
 
-class Device(Base, BaseMixin, PluginMixin):
+class Device(Base, CRUDMixin, PluginMixin):
     __tablename__ = 'devices'
 
     id = Column(Integer, primary_key=True)

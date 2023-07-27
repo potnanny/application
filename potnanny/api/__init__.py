@@ -7,7 +7,7 @@ import aiohttp_cors
 import base64
 from cryptography.fernet import Fernet
 from aiohttp import web
-from aiohttp_session import setup
+from aiohttp_session import setup, SimpleCookieStorage
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from .index import routes as index_routes
 from .auth import routes as auth_routes
@@ -39,15 +39,20 @@ def init_api():
     static_path = os.path.join(os.path.dirname(__file__), "static")
     app.router.add_static('/static', static_path, name='static')
 
+    # simple cookie storage for devel ONLY
+    setup(app, SimpleCookieStorage())
+
     # session cookie storage
+    """
     key = Fernet.generate_key()
     secret = base64.urlsafe_b64decode(key)
     setup(app, EncryptedCookieStorage(secret,
         cookie_name='POTNANNY_API',
         samesite="None",
-        # secure=True
+        secure=False
         )
     )
+    """
 
     # plug in jinja template handling
     aiohttp_jinja2.setup(app,
