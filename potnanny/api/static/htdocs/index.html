@@ -1,0 +1,63 @@
+<!doctype html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="{{ static('/css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ static('/css/bootstrap-icons.css') }}" rel="stylesheet">
+        <script src="{{ static('/js/bootstrap.bundle.min.js') }}"></script>
+    </head>
+    <body>
+        <!-- navigation -->
+        <nav class="navbar navbar-light border-bottom">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">POTNANNY</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="#!/settings">settings</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#!/about">about</a></li>
+                        <li class="nav-item-dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown">account</a>
+                            <ul class="dropdown-menu">
+                                <a class="dropdown-item" href="#!/logout">change password</a>
+                                <a class="dropdown-item" href="#!/logout">logout</a>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- app workspace -->
+        <div class="container mt-4" id="app"></div>
+
+        <!-- apps modal window -->
+        <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
+          <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content" id="myModalContent">
+              <div class="modal-header border-0" id="myModalHeader">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body" id="myModalBody"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- notification style toast area -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <script src="{{ static('/js/app.js') }}"></script>
+        <script>
+          const navLinks = document.querySelectorAll('.nav-item');
+          const menuToggle = document.getElementById('navbarNav')
+          const bsCollapse = new bootstrap.Collapse(menuToggle, {toggle:false})
+          navLinks.forEach(function(l) {
+            l.addEventListener('click', () => { bsCollapse.toggle() });
+          })
+        </script>
+    </body>
+</html>
