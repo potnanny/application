@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name='potnanny',
-    version='0.1.0',
+    version='0.1.1',
     python_requires=">=3.9",
     packages=setuptools.find_packages(),
     include_package_data=True,
