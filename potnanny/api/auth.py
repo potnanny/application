@@ -20,7 +20,6 @@ async def login(request):
             "status": "error", "msg": "login failed"}, status=401)
 
     session = await new_session(request)
-
     session['username'] = user.name
     session['roles'] = user.roles
     session.changed()
@@ -28,6 +27,8 @@ async def login(request):
     resp = web.json_response({
         "status": "ok", "msg": "authenticated ok"}, status=200)
 
+    """
+    # for optional features
     try:
         kc = await ObjectInterface(Keychain).get_by_name('features')
         ck = {
@@ -40,6 +41,7 @@ async def login(request):
     except Exception as x:
         logger.warning(x)
         pass
+    """
 
     return resp
 

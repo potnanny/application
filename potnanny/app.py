@@ -47,11 +47,11 @@ async def init_app(config=Config()):
     runner = web.AppRunner(app)
     await runner.setup()
 
-    '''
     # set up ssl/tls context for https
     context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH)
     context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context.check_hostname = False
+    
     # context.verify_mode = ssl.CERT_REQUIRED
     context.load_cert_chain('/etc/ssl/potnanny/certificate.crt','/etc/ssl/potnanny/private.key')
 
@@ -60,10 +60,9 @@ async def init_app(config=Config()):
         '0.0.0.0',
         port=8443,
         ssl_context=context)
-    '''
 
     # comment out the line below for production
-    site = web.TCPSite(runner, '0.0.0.0', port=8080)
+    # site = web.TCPSite(runner, '0.0.0.0', port=8080)
 
     await site.start()
 
