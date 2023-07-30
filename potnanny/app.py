@@ -47,23 +47,8 @@ async def init_app(config=Config()):
     runner = web.AppRunner(app)
     await runner.setup()
 
-    # set up ssl/tls context for https
-    context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH)
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-    context.check_hostname = False
-    
-    # context.verify_mode = ssl.CERT_REQUIRED
-    context.load_cert_chain('/etc/ssl/potnanny/certificate.crt','/etc/ssl/potnanny/private.key')
-
-    # for ssl/secure version, uncomment
-    site = web.TCPSite(runner,
-        '0.0.0.0',
-        port=8443,
-        ssl_context=context)
-
-    # comment out the line below for production
-    # site = web.TCPSite(runner, '0.0.0.0', port=8080)
-
+    # we run the webserver on 8080, and let nginx proxy handle the https/ssl
+    site = web.TCPSite(runner, '0.0.0.0', port=8080)
     await site.start()
 
     while not STOP_EVENT.is_set():

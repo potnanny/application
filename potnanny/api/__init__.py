@@ -39,18 +39,18 @@ def init_api():
     static_path = os.path.join(os.path.dirname(__file__), "static")
     app.router.add_static('/static', static_path, name='static')
 
-    # simple cookie storage for devel ONLY
-    # setup(app, SimpleCookieStorage())
-
     # session cookie storage
     key = Fernet.generate_key()
     secret = base64.urlsafe_b64decode(key)
     setup(app, EncryptedCookieStorage(secret,
         cookie_name='POTNANNY_API',
         samesite="None",
-        secure=True
+        secure=False
         )
     )
+
+    # simple cookie storage for devel ONLY
+    # setup(app, SimpleCookieStorage())
 
     # plug in jinja template handling
     aiohttp_jinja2.setup(app,
