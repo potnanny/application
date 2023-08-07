@@ -89,6 +89,10 @@ async def init_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    await init_features()
+
+
+async def init_features():
     # create initial default config
     try:
         attrs = {

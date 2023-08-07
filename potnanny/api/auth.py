@@ -27,21 +27,19 @@ async def login(request):
     resp = web.json_response({
         "status": "ok", "msg": "authenticated ok"}, status=200)
 
-    """
     # for optional features
     try:
         kc = await ObjectInterface(Keychain).get_by_name('features')
-        ck = {
+        opts = {
             'username': user.name,
-            'roles': user.roles }
+            'roles': user.roles,
+            'room_limit': kc.attributes['room_limit'],
+            'device_limit': kc.attributes['device_limit'] }
 
-        ck['room_limit'] = kc.attributes['room_limit']
-        ck['device_limit'] = kc.attributes['device_limit']
-        resp.set_cookie("POTNANNY", ck, samesite="None", secure=False)
+        resp.set_cookie("POTNANNY", opts, samesite="None", secure=True)
     except Exception as x:
         logger.warning(x)
         pass
-    """
 
     return resp
 

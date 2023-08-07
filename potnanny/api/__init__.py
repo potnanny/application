@@ -45,7 +45,7 @@ def init_api():
     setup(app, EncryptedCookieStorage(secret,
         cookie_name='POTNANNY_API',
         samesite="None",
-        secure=False
+        secure=True
         )
     )
 
