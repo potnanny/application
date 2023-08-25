@@ -1,6 +1,6 @@
 import logging
 from aiohttp import web
-from potnanny.models.user import User
+from potnanny.models.user import User, UserSchema
 from potnanny.models.interface import ObjectInterface
 from potnanny.utils import hash_password
 from .decorators import login_required

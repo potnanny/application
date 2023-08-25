@@ -1,7 +1,8 @@
 import logging
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, String, Float, DateTime,
     ForeignKey, PickleType, Text, Boolean, func)
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.models.mixins import CRUDMixin
 from potnanny.models.ext import MutableDict, JSONEncodedDict
@@ -10,10 +11,7 @@ from potnanny.models.ext import MutableDict, JSONEncodedDict
 logger = logging.getLogger(__name__)
 
 
-class KeychainSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class KeychainSchema(SafeSchema):
     name = fields.String()
     attributes = fields.Dict(allow_none=True)
     protected = fields.Boolean(allow_none=True)

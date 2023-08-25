@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import (create_async_engine, AsyncSession,
     AsyncAttrs)
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker
-from potnanny.utils import hash_password
+from potnanny.utils import hash_password, random_key
 
 
 engine = None
@@ -89,26 +89,29 @@ async def init_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    await init_features()
+    # create app features and defaults
+    logger.debug("Initializing features")
 
-
-async def init_features():
-    # create initial default config
     try:
-        attrs = {
-            'temperature_display': 'F',
-            'polling_interval': 10,
-            'plugin_path': os.path.expanduser('~/potnanny/plugins'),
-            'leaf_offset': -2,
-            'storage_days': 5,
+        # create initial default config
+        opts = {
+            'name': 'settings',
+            'protected': True,
+            'attributes': {
+                'temperature_display': 'F',
+                'polling_interval': 10,
+                'plugin_path': os.path.expanduser('~/potnanny/plugins'),
+                'leaf_offset': -2,
+                'storage_days': 5,
+            }
         }
-        kc = Keychain(name='settings', attributes=attrs, protected=True)
+        kc = Keychain(**opts)
         await kc.insert()
     except:
         pass
 
-    # create the default admin user
     try:
+        # create the default admin user
         attrs = {
             'name': 'admin',
             'roles': 'admin,user',
@@ -120,12 +123,27 @@ async def init_features():
         pass
 
     try:
+        # create base feature set
         opts = {
             'name': 'features',
             'protected': True,
             'attributes': {
                 'room_limit': 1,
                 'device_limit': 4
+            }
+        }
+        kc = Keychain(**opts)
+        await kc.insert()
+    except:
+        pass
+
+    try:
+        # create api key
+        opts = {
+            'name': 'api_key',
+            'protected': True,
+            'attributes': {
+                'key': random_key()
             }
         }
         kc = Keychain(**opts)

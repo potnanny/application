@@ -2,10 +2,11 @@ import re
 import asyncio
 import logging
 import datetime
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, Text, String, Float, Boolean,
     DateTime, ForeignKey, func)
 from sqlalchemy.orm import relationship
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.controllers.outlet import switch_device_outlet
 from potnanny.utils import evaluate
@@ -16,13 +17,10 @@ from potnanny.models.ext import MutableDict, JSONEncodedDict
 logger = logging.getLogger(__name__)
 
 
-class ControlSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class ControlSchema(SafeSchema):
     name = fields.String()
-    outlet = fields.Integer()
     device_id = fields.Integer()
+    outlet = fields.Integer()
     attributes = fields.Dict(allow_none=True)
 
 

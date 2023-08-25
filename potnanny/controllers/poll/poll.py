@@ -57,7 +57,7 @@ class Poller:
         """
 
         device = await ObjectInterface(Device).get_by_id(pk)
-        logger.debug("loaded individual device: {device}")
+        logger.debug("Loaded individual device: {device}")
         if device is not None:
             self.devices.append(device)
             await self.poll()

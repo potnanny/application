@@ -6,10 +6,8 @@ from potnanny.models.interface import ObjectInterface
 from potnanny.controllers.graph import room_graph
 from .decorators import login_required
 
-
 routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
-
 
 @routes.get('/api/v1.0/rooms')
 @login_required

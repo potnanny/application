@@ -1,8 +1,9 @@
 import logging
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, DateTime, Unicode, Boolean,
     UnicodeText, ForeignKey, func)
 from sqlalchemy.orm import relationship
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.plugins.mixins import PluginMixin
 from potnanny.models.mixins import CRUDMixin
@@ -11,10 +12,7 @@ from potnanny.models.ext import MutableDict, JSONEncodedDict
 logger = logging.getLogger(__name__)
 
 
-class DeviceSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class DeviceSchema(SafeSchema):
     name = fields.String()
     notes = fields.String(allow_none=True)
     room_id = fields.Integer(allow_none=True)

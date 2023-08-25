@@ -2,10 +2,11 @@ import re
 import logging
 import calendar
 import datetime
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, Unicode, DateTime, ForeignKey,
     Boolean, func)
 from sqlalchemy.orm import relationship
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.utils import utcnow
 from potnanny.database import Base
 from potnanny.models.mixins import CRUDMixin
@@ -16,10 +17,7 @@ from potnanny.controllers.outlet import switch_device_outlet
 logger = logging.getLogger(__name__)
 
 
-class ScheduleSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class ScheduleSchema(SafeSchema):
     name = fields.String(allow_none=False)
     device_id = fields.Integer(allow_none=True)
     outlet = fields.Integer(allow_none=False)

@@ -1,9 +1,10 @@
 import asyncio
 import logging
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
     ForeignKey, func)
 from sqlalchemy.orm import relationship
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.models.mixins import CRUDMixin
 
@@ -11,10 +12,7 @@ from potnanny.models.mixins import CRUDMixin
 logger = logging.getLogger(__name__)
 
 
-class RoomSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class RoomSchema(SafeSchema):
     name = fields.String()
     notes = fields.String(allow_none=True)
 

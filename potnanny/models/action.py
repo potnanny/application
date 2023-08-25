@@ -5,6 +5,8 @@ import datetime
 from sqlalchemy import (Column, Integer, Text, String, Float, Boolean,
     DateTime, ForeignKey, func)
 from sqlalchemy.orm import relationship
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.plugins.mixins import InterfaceMixin
 from potnanny.controllers.trigger import (open_action_triggers,
@@ -15,6 +17,13 @@ from potnanny.models.ext import MutableDict, JSONEncodedDict
 
 
 logger = logging.getLogger(__name__)
+
+
+class ActionSchema(SafeSchema):
+    name = fields.String()
+    device_id = fields.Integer()
+    interface = fields.String()
+    attributes = fields.Dict(allow_none=True)
 
 
 class Action(Base, CRUDMixin, InterfaceMixin):

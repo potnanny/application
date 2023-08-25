@@ -1,23 +1,12 @@
 import logging
 from aiohttp import web
-from marshmallow import Schema, fields, EXCLUDE
-from potnanny.models.action import Action
+from potnanny.models.action import Action, ActionSchema
 from potnanny.models.interface import ObjectInterface
 from .decorators import login_required
 
 
 routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
-
-
-class ActionSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
-    name = fields.String()
-    device_id = fields.Integer()
-    interface = fields.String()
-    attributes = fields.Dict(allow_none=True)
 
 
 @routes.get('/api/v1.0/actions')

@@ -9,7 +9,7 @@ from .lists import flatten_list
 from .pids import PIDFILE, is_running, pid_from_file, pid_to_file, check_pid
 from .plugins import load_plugins
 from .shell import run
-from .pw import hash_password, verify_password
+from .pw import hash_password, verify_password, random_key
 from .eval import evaluate
 from .serial import load_serial_number
 
@@ -28,7 +28,7 @@ __all__ = [
     PIDFILE, is_running, pid_from_file, pid_to_file, check_pid,
     load_plugins,
     run,
-    hash_password, verify_password,
+    hash_password, verify_password, random_key,
     evaluate,
     load_serial_number
 ]

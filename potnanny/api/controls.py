@@ -1,22 +1,12 @@
 import logging
 from aiohttp import web
-from marshmallow import Schema, fields, EXCLUDE
-from potnanny.models.control import Control
+from marshmallow import fields
+from potnanny.models.control import Control, ControlSchema
 from potnanny.models.interface import ObjectInterface
 from .decorators import login_required
 
 routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
-
-class ControlSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
-    name = fields.String()
-    device_id = fields.Integer()
-    outlet = fields.Integer()
-    attributes = fields.Dict(allow_none=True)
-
 
 @routes.get('/api/v1.0/controls')
 @login_required

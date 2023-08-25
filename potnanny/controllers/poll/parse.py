@@ -3,6 +3,7 @@ import logging
 from potnanny.utils import (calculate_vpd, convert_to_fahrenheit,
     flatten_list, utcnow)
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -85,6 +86,7 @@ class Parser:
                     value = convert_to_fahrenheit(value)
 
                 m.update({'type': key, 'value': value, 'created': self.now})
+                logger.debug(f"Measurement: {m}")
                 measurements.append(m)
 
         except Exception as x:

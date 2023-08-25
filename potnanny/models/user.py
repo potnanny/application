@@ -1,7 +1,8 @@
 import logging
 from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
     Boolean, ForeignKey, func)
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.models.mixins import CRUDMixin
 
@@ -9,10 +10,7 @@ from potnanny.models.mixins import CRUDMixin
 logger = logging.getLogger(__name__)
 
 
-class UserSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class UserSchema(SafeSchema):
     name = fields.String()
     password = fields.String(allow_none=True)
     roles = fields.String(allow_none=True)

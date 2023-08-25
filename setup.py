@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name='potnanny',
-    version='0.1.5',
+    version='0.1.8',
     python_requires=">=3.9",
     packages=setuptools.find_packages(),
     include_package_data=True,
@@ -33,6 +33,7 @@ setuptools.setup(
         'pyyaml==6.0',
         'python-daemon==3.0.1',
         'sqlalchemy==2.0.16',
+        'markupsafe==2.1.3',
     ],
     package_data = {
         '': ['*.html', '*.css', '*.js', '*.woff2'],

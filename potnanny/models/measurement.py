@@ -1,7 +1,8 @@
 import logging
-from marshmallow import Schema, fields, EXCLUDE, INCLUDE
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, Float, DateTime,
     ForeignKey, func)
+from marshmallow import fields
+from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.models.mixins import CRUDMixin
 
@@ -9,10 +10,7 @@ from potnanny.models.mixins import CRUDMixin
 logger = logging.getLogger(__name__)
 
 
-class MeasurementSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class MeasurementSchema(SafeSchema):
     type = fields.String(allow_none=False)
     value = fields.Float(allow_none=False)
     created = fields.Raw(allow_none=True)

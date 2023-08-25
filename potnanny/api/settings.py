@@ -1,15 +1,13 @@
 from aiohttp import web
+from marshmallow import fields, validate
 from potnanny.models.keychain import Keychain
 from potnanny.models.interface import ObjectInterface
-from marshmallow import Schema, fields, validate, EXCLUDE
+from potnanny.models.schemas.safe import SafeSchema
 from .decorators import login_required
 
 routes = web.RouteTableDef()
 
-class SettingSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class SettingSchema(SafeSchema):
     temperature_display = fields.String(allow_none=True,
         validate=validate.OneOf(['f','F','c','C']))
     polling_interval = fields.Integer(allow_none=True,
