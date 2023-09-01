@@ -1,6 +1,7 @@
 import logging
-from sqlalchemy import (Column, Integer, Unicode, UnicodeText, Float, DateTime,
-    ForeignKey, func)
+import datetime
+from sqlalchemy import func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
@@ -20,16 +21,16 @@ class MeasurementSchema(SafeSchema):
 class Measurement(Base, CRUDMixin):
     __tablename__ = 'measurements'
 
-    id = Column(Integer, primary_key=True)
-    type = Column(Unicode(24), nullable=False, index=True)
-    value = Column(Float, nullable=False)
-    created = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    type: Mapped[str]
+    value: Mapped[int]
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     # make relationships compatible with asyncio
     __mapper_args__ = {"eager_defaults": True}
 
     # relationships
-    device_id = Column(Integer, ForeignKey('devices.id'), nullable=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id"), nullable=True)
 
     def as_dict(self):
         return {

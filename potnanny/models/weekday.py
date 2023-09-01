@@ -47,4 +47,3 @@ class WeekdayMap:
                 results.append(dow)
 
         return results
-

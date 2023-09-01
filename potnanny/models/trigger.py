@@ -1,6 +1,7 @@
 import logging
-from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
-    ForeignKey, Boolean, func)
+import datetime
+from sqlalchemy import func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from potnanny.database import Base
 from potnanny.models.mixins import CRUDMixin
 
@@ -11,15 +12,18 @@ logger = logging.getLogger(__name__)
 class Trigger(Base, CRUDMixin):
     __tablename__ = 'triggers'
 
-    id = Column(Integer, primary_key=True)
-    created = Column(DateTime, server_default=func.now())
-    message = Column(Unicode(128), nullable=True, unique=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message: Mapped[str]
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
+
+    # make relationships compatible with asyncio sessions
+    __mapper_args__ = {"eager_defaults": True}
 
     # relationships
-    action_id = Column(Integer, ForeignKey('actions.id'))
+    action_id: Mapped[int] = mapped_column(ForeignKey("actions.id"))
 
     def __repr__(self):
-        return "<Error(id={}, title={})>".format(self.id, self.title)
+        return "<Trigger(id={}, message={})>".format(self.id, self.message)
 
 
     def as_dict(self):

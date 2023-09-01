@@ -1,0 +1,3 @@
+0.2.0       Migrated to SQLAlchemy 2.0 style Mapping for models.
+            Fixed model interface delete method, to properly cascade deletes in
+            a session.

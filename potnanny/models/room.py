@@ -1,8 +1,9 @@
 import asyncio
 import logging
-from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
-    ForeignKey, func)
-from sqlalchemy.orm import relationship
+import datetime
+from typing import List, Optional
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
@@ -20,26 +21,24 @@ class RoomSchema(SafeSchema):
 class Room(Base, CRUDMixin):
     __tablename__ = 'rooms'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(Unicode(128), nullable=False, unique=True)
-    notes = Column(UnicodeText, nullable=True, unique=False)
-    created = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    notes: Mapped[Optional[str]]
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
-    # make relationships compatible with asyncio
+    # make relationships compatible with asyncio sessions
     __mapper_args__ = {"eager_defaults": True}
 
     # relationships
-    devices = relationship('Device',
+    devices: Mapped[List['Device']] = relationship(
         backref='room',
-        cascade='all, delete',
+        cascade='all,delete',
         lazy='subquery')
 
-
     def __repr__(self):
-        return "<Room(id={}, name={})>".format(self.id, self.name)
+        return f"<Room(id={self.id}, name={self.name})>"
 
-
-    def as_dict(self, explore=True):
+    def as_dict(self):
         """
         present object as a dict.
         args:
@@ -55,10 +54,9 @@ class Room(Base, CRUDMixin):
             'notes': self.notes,
             'created': self.created.isoformat() + "Z",
         }
-        if explore:
-            try:
-                data['devices'] = [i.as_dict() for i in self.devices]
-            except:
-                pass
+        try:
+            data['devices'] = [d.as_dict() for d in self.devices]
+        except:
+            pass
 
         return data

@@ -1,6 +1,8 @@
 import logging
-from sqlalchemy import (Column, Integer, String, Float, DateTime,
-    ForeignKey, PickleType, Text, Boolean, func)
+import datetime
+from typing import Any
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
@@ -18,16 +20,13 @@ class KeychainSchema(SafeSchema):
 
 
 class Keychain(Base, CRUDMixin):
-    """Store named info in a key-value pair."""
-
     __tablename__ = 'keychains'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False, unique=True)
-    attributes = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
-    protected = Column(Boolean, nullable=False, default=False)
-    created = Column(DateTime, server_default=func.now())
-    modified = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    attributes: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSONEncodedDict))
+    protected: Mapped[bool] = mapped_column(default=False)
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     __mapper_args__ = {'eager_defaults': True}
 
@@ -37,9 +36,9 @@ class Keychain(Base, CRUDMixin):
 
 
     def as_dict(self):
-        data = {
+        return {
             'id': self.id,
             'name': self.name,
             'attributes': self.attributes,
-            'protected': self.protected }
-        return data
+            'protected': self.protected
+        }

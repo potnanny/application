@@ -29,27 +29,32 @@ class TestUtilsModel(IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         pass
 
+
     async def test_get_name(self):
         ifc = ObjectInterface(User)
         obj = await ifc.get_by_name('test')
         assert obj is not None
         assert obj.name == 'test'
 
+
     async def test_get_id(self):
         ifc = ObjectInterface(User)
-        obj = await ifc.get_by_id(2)
+        obj = await ifc.get_by_id(1)
         assert obj is not None
         assert obj.name == 'test'
+
 
     async def test_get_bad_id(self):
         ifc = ObjectInterface(User)
         obj = await ifc.get_by_id(999)
         assert obj is None
 
+
     async def test_get_all(self):
         ifc = ObjectInterface(User)
         objects = await ifc.get_all()
         assert len(objects) > 0
+
 
     async def test_delete_user(self):
         opts = {
@@ -68,6 +73,18 @@ class TestUtilsModel(IsolatedAsyncioTestCase):
         obj = await ObjectInterface(User).get_by_id(pk)
         assert obj is None
 
+
+    async def test_abstract_query(self):
+        opts = {
+            'name': 'foobar',
+            'roles': 'user',
+            'password': 'invalid!'}
+
+        user = User(**opts)
+        await user.insert()
+
+        obj = await ObjectInterface(user.__class__).get_by_id(user.id)
+        assert isinstance(obj, user.__class__)
 
 if __name__ == '__main__':
     unittest.main()

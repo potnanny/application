@@ -42,7 +42,7 @@ class ObjectInterface:
         stmt = select(self.klass).filter(self.klass.id == obj_id)
         try:
             results = await execute_statement(stmt)
-            obj = results.one_or_none()[0]
+            obj = results.scalars().one_or_none()
             logger.debug(f"Object: {obj}")
             return obj
         except:
@@ -57,7 +57,7 @@ class ObjectInterface:
         stmt = select(self.klass).filter(self.klass.name == name)
         try:
             results = await execute_statement(stmt)
-            obj = results.one_or_none()[0]
+            obj = results.scalars().one_or_none()
             logger.debug(f"Object: {obj}")
             return obj
         except:
@@ -90,11 +90,12 @@ class ObjectInterface:
             async with db.session() as session:
                 changed = 0
                 results = await session.execute(stmt)
-                obj = results.one_or_none()[0]
-                for k, v in data.items():
-                    if hasattr(obj, k) and getattr(obj, k) != v:
-                        setattr(obj, k, v)
-                        changed += 1
+                obj = results.scalars().one_or_none()
+                if obj:
+                    for k, v in data.items():
+                        if hasattr(obj, k) and getattr(obj, k) != v:
+                            setattr(obj, k, v)
+                            changed += 1
 
                 if changed:
                     await session.commit()
@@ -117,12 +118,15 @@ class ObjectInterface:
         Delete an object id
         """
 
-        stmt = delete(self.klass).where(self.klass.id == pk)
+        stmt = select(self.klass).filter(self.klass.id == pk)
 
-        async def process(stmt):
+        async def process(query):
             async with db.session() as session:
-                results = await session.execute(stmt)
-                await session.commit()
+                results = await session.execute(query)
+                obj = results.scalars().one_or_none()
+                if obj:
+                    await session.delete(obj)
+                    await session.commit()
 
         try:
             if 'db' in LOCKS and LOCKS['db'] is not None:

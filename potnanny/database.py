@@ -1,9 +1,8 @@
 import os
 import logging
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.ext.asyncio import (create_async_engine, AsyncSession,
     AsyncAttrs)
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import sessionmaker
 from potnanny.utils import hash_password, random_key
 
 

@@ -2,9 +2,9 @@ import re
 import asyncio
 import logging
 import datetime
-from sqlalchemy import (Column, Integer, Text, String, Float, Boolean,
-    DateTime, ForeignKey, func)
-from sqlalchemy.orm import relationship
+from typing import Any
+from sqlalchemy import func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
@@ -27,17 +27,17 @@ class ControlSchema(SafeSchema):
 class Control(Base, CRUDMixin):
     __tablename__ = 'controls'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(128), nullable=False, unique=False)
-    outlet = Column(Integer, nullable=False)
-    created = Column(DateTime, server_default=func.now())
-    attributes = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    outlet: Mapped[int]
+    attributes: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSONEncodedDict))
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
-    # make relationships compatible with asyncio
+    # make relationships compatible with asyncio sessions
     __mapper_args__ = {"eager_defaults": True}
 
     # relationships
-    device_id = Column(Integer, ForeignKey('devices.id'))
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id"))
 
 
     def __repr__(self):

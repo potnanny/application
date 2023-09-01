@@ -17,8 +17,10 @@ class TestMixins(IsolatedAsyncioTestCase):
         uri = 'sqlite+aiosqlite://'
         await db.init_db(uri)
 
+
     async def asyncTearDown(self):
         pass
+
 
     async def test_find(self):
         name = '__main__.DeviceTest'

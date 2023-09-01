@@ -1,6 +1,7 @@
 import logging
-from sqlalchemy import (Column, Integer, DateTime, Unicode, UnicodeText,
-    Boolean, ForeignKey, func)
+import datetime
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_column
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
@@ -19,14 +20,14 @@ class UserSchema(SafeSchema):
 class User(Base, CRUDMixin):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(Unicode(128), nullable=False, unique=True)
-    password = Column(Unicode(256), nullable=False, unique=False)
-    roles = Column(Unicode(256), nullable=False, unique=False, default='user')
-    is_active = Column(Boolean, default=True)
-    created = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
+    roles: Mapped[str] = mapped_column(default='user')
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
-    # make relationships compatible with asyncio
+    # make relationships compatible with asyncio sessions
     __mapper_args__ = {"eager_defaults": True}
 
 

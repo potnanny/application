@@ -2,9 +2,9 @@ import re
 import logging
 import calendar
 import datetime
-from sqlalchemy import (Column, Integer, Unicode, DateTime, ForeignKey,
-    Boolean, func)
-from sqlalchemy.orm import relationship
+from typing import Any
+from sqlalchemy import func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.utils import utcnow
@@ -13,6 +13,7 @@ from potnanny.models.mixins import CRUDMixin
 from potnanny.models.ext import MutableDict, JSONEncodedDict
 from potnanny.models.weekday import WeekdayMap
 from potnanny.controllers.outlet import switch_device_outlet
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,16 +36,19 @@ class Schedule(Base, CRUDMixin):
 
     __tablename__ = 'schedules'
 
-    id = Column(Integer, primary_key=True)
-    name = fields.String(nullable=False)
-    outlet = Column(Integer, nullable=False, default=1)
-    days = Column(Integer, nullable=False, default=127)
-    on_time = Column(Unicode(16), nullable=False)
-    off_time = Column(Unicode(16), nullable=False)
-    created = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    outlet: Mapped[int]
+    days: Mapped[int]
+    on_time: Mapped[str]
+    off_time: Mapped[str]
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
+
+    # make relationships compatible with asyncio sessions
+    __mapper_args__ = {"eager_defaults": True}
 
     # relationships
-    device_id = Column(Integer, ForeignKey('devices.id'))
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id"))
 
 
     def __repr__(self):

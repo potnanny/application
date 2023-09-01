@@ -1,13 +1,15 @@
 import logging
-from sqlalchemy import (Column, Integer, DateTime, Unicode, Boolean,
-    UnicodeText, ForeignKey, func)
-from sqlalchemy.orm import relationship
+import datetime
+from typing import List, Optional, Any
+from sqlalchemy import func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from marshmallow import fields
 from potnanny.models.schemas.safe import SafeSchema
 from potnanny.database import Base
 from potnanny.plugins.mixins import PluginMixin
 from potnanny.models.mixins import CRUDMixin
 from potnanny.models.ext import MutableDict, JSONEncodedDict
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,26 +25,30 @@ class DeviceSchema(SafeSchema):
 class Device(Base, CRUDMixin, PluginMixin):
     __tablename__ = 'devices'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(Unicode(64), nullable=False, unique=False)
-    interface = Column(Unicode(128), nullable=True, unique=False)
-    attributes = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=True)
-    created = Column(DateTime, server_default=func.now())
-    modified = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    interface: Mapped[Optional[str]]
+    attributes: Mapped[Optional[dict[str, Any]]] = mapped_column(MutableDict.as_mutable(JSONEncodedDict))
+    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     # make relationships compatible with asyncio sessions
     __mapper_args__ = {"eager_defaults": True}
 
     # relationships
-    room_id = Column(Integer, ForeignKey('rooms.id'), nullable=True)
-    measurements = relationship('Measurement',
-        backref='device', cascade='all,delete')
-    schedules = relationship('Schedule',
-        backref='device', cascade='all,delete')
-    controls = relationship('Control',
-        backref='device', cascade='all,delete')
-    actionss = relationship('Action',
-        backref='device', cascade='all,delete')
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), nullable=True)
+    measurements: Mapped[List['Measurement']] = relationship(
+        backref='device',
+        cascade='all,delete',
+        lazy='subquery')
+    schedules: Mapped[List['Schedule']] = relationship(
+        backref='device',
+        cascade='all,delete',
+        lazy='subquery')
+    controls: Mapped[List['Control']] = relationship(
+        backref='device',
+        cascade='all,delete',
+        lazy='subquery')
+
 
     def __repr__(self):
         return "<Device ({})>".format(self.name)
@@ -58,12 +64,12 @@ class Device(Base, CRUDMixin, PluginMixin):
         }
 
         try:
-            data['controls'] = self.controls
+            data['controls'] = [c.as_dict() for c in self.controls]
         except:
             pass
 
         try:
-            data['schedules'] = self.schedules
+            data['schedules'] = [s.as_dict for s in self.schedules]
         except:
             pass
 
