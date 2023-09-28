@@ -52,7 +52,7 @@ async def init_app(config=Config()):
     await site.start()
 
     while not STOP_EVENT.is_set():
-        await asyncio.sleep(1)
+        await asyncio.sleep(5)
 
     logger.debug("Exiting")
     await runner.cleanup()

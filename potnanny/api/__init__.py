@@ -9,6 +9,7 @@ from cryptography.fernet import Fernet
 from aiohttp import web
 from aiohttp_session import setup, SimpleCookieStorage
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
+from potnanny.utils.pw import random_key
 from .index import routes as index_routes
 from .auth import routes as auth_routes
 from .users import routes as user_routes
@@ -39,7 +40,7 @@ def init_api():
     static_path = os.path.join(os.path.dirname(__file__), "static")
     app.router.add_static('/static', static_path, name='static')
 
-    # session cookie storage
+     # session cookie storage
     key = Fernet.generate_key()
     secret = base64.urlsafe_b64decode(key)
     setup(app, EncryptedCookieStorage(secret,
@@ -73,7 +74,6 @@ def init_api():
     app.add_routes(schedule_routes)
     app.add_routes(test_routes)
     app.add_routes(wifi_routes)
-
 
     logger.debug("Building CORS routes")
     cors = aiohttp_cors.setup(app, defaults={

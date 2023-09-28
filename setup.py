@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name='potnanny',
-    version='0.2.0',
+    version='0.2.2',
     python_requires=">=3.9",
     packages=setuptools.find_packages(),
     include_package_data=True,
@@ -16,9 +16,9 @@ setuptools.setup(
     author_email='potnanny@gmail.com',
     url='https://github.com/potnanny/application',
     install_requires=[
+        'cryptography==3.3.2',
         'requests==2.31.0',
-        'scrypt==0.8.20',
-        'cryptography==41.0.1',
+        'werkzeug==2.3.7',
         'aiofiles==23.1.0',
         'aiohttp==3.8.4',
         'aiohttp-jinja2==1.5.1',

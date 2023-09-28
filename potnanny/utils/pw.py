@@ -1,23 +1,19 @@
 import os
-import scrypt
-import hashlib
 import string
 import secrets
-from potnanny.utils.serial import SERIAL_NUMBER
-
-MYSALT = os.getenv('POTNANNY_SECRET', SERIAL_NUMBER)
-
-def hash_password(password):
-    secret = scrypt.hash(password, MYSALT)
-    return hashlib.sha256(secret).hexdigest()
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
-def verify_password(guessed, hashed):
-    secret = hash_password(guessed)
-    return secret == hashed
+def hash_password(password:str) -> str:
+    secret = generate_password_hash(password)
+    return secret
 
 
-def random_key(length=24):
+def verify_password(guessed:str, hashed:str) -> bool:
+    return check_password_hash(hashed, guessed)
+
+
+def random_key(length:int = 24) -> str:
     choices = string.ascii_lowercase + string.ascii_uppercase + string.digits
     symbols = list(choices)
     password = ""

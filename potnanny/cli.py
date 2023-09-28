@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import logging
 import asyncio
 import signal
@@ -48,7 +49,10 @@ def stop(die_absent=True):
             sys.exit(1)
     else:
         try:
-            os.kill(pid, signal.SIGTERM)
+            # modified to kill the whole process group
+            # os.kill(pid, signal.SIGTERM)
+            pgid = os.getpgid(pid)
+            os.killpg(pgid, signal.SIGTERM)
         except:
             pass
         finally:
@@ -69,6 +73,7 @@ def status():
 
 def restart():
     stop(False)
+    time.sleep(2)
     start()
 
 
@@ -85,11 +90,6 @@ def start_service():
 
     with DaemonContext(**opts):
         config = Config()
-
-        # quietly create the dirs
-        # path = resolve_path(config.plugin_path)
-        # os.makedirs(path, exist_ok=True)
-
         pid_to_file(os.getpid())
         init_logging(config.log_path)
         asyncio.run(init_app(config))

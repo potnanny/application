@@ -1,3 +1,10 @@
+0.2.2       Migrated password hashing to use the werkzeug tools, instead of the
+            more complex algorithms. this simplifies and speeds up the
+            installer, by not requiring the rust compiler for the crypto
+            libraries.
+
+0.2.1       Changed CLI stop method to use killpg() instead of kill()
+
 0.2.0       Migrated to SQLAlchemy 2.0 style Mapping for models.
             Fixed model interface delete method, to properly cascade deletes in
             a session.

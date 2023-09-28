@@ -23,7 +23,7 @@ class Keychain(Base, CRUDMixin):
     __tablename__ = 'keychains'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True)
     attributes: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSONEncodedDict))
     protected: Mapped[bool] = mapped_column(default=False)
     created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())

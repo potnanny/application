@@ -13,22 +13,27 @@ from potnanny.controllers.cleanup import purge_measurements
 
 
 logger = logging.getLogger(__name__)
+WORKER = None
 TASK = None
+
 
 async def run_worker():
     """
     Convenience function, to run the worker
     """
+
     global TASK
+    global WORKER
     logger.debug("Starting worker task")
-    worker = Worker()
-    TASK = asyncio.create_task(worker.run())
+    WORKER = Worker()
+    TASK = asyncio.create_task(WORKER.run())
 
 
 async def stop_worker():
     """
     Convenience function, to signal worker to stop
     """
+
     logger.debug("Stopping worker task")
     WORKER_EVENT.set()
 
@@ -37,6 +42,7 @@ async def restart_worker():
     """
     Convenience function, to stop and restart the worker
     """
+
     await stop_worker()
     while TASK in asyncio.all_tasks():
         await asyncio.sleep(1)
@@ -113,7 +119,7 @@ class Worker:
         poll device for information
         """
 
-        logger.debug(f"polling device {pk}")
+        logger.debug(f"polling single device {pk}")
         opts = {
             'convert_c': self.convert_c,
             'leaf_offset': self.leaf_offset}
