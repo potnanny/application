@@ -31,6 +31,14 @@ async def reboot(request):
     (rval, stdout, stderr) = await run('sudo reboot now')
 
 
+@routes.post('/api/v1.0/restartworker')
+@login_required
+async def worker_restart(request):
+    results = await restart_worker()
+    return web.json_response({
+        "status": "ok", "msg": "ok"}, status=200)
+
+
 @routes.get('/api/v1.0/serial')
 @login_required
 async def serial_number(request):

@@ -1,3 +1,7 @@
+0.2.4       Fixed module reference bug with the worker.WORKER
+
+0.2.3       Fixed mithril/javascript bug, preventing authentication
+
 0.2.2       Migrated password hashing to use the werkzeug tools, instead of the
             more complex algorithms. this simplifies and speeds up the
             installer, by not requiring the rust compiler for the crypto

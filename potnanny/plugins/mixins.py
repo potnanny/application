@@ -5,6 +5,8 @@ from potnanny.plugins.base import (BluetoothDevicePlugin, GPIODevicePlugin,
     ActionPlugin, PipelinePlugin)
 from potnanny.models.interface import ObjectInterface
 from potnanny.models.keychain import Keychain
+
+
 logger = logging.getLogger(__name__)
 
 

@@ -4,8 +4,10 @@ from potnanny.models.device import Device, DeviceSchema
 from potnanny.models.interface import ObjectInterface
 from potnanny.controllers.device import get_device_mtypes
 from potnanny.controllers.outlet import switch_device_outlet
-from potnanny.controllers.worker import WORKER
 from potnanny.controllers.graph import device_graph
+
+import potnanny.controllers.worker as worker
+
 from potnanny.locks import LOCKS
 from .decorators import login_required
 
@@ -101,7 +103,7 @@ async def get_measurement_types(request):
 @login_required
 async def device_poll(request):
     pk = int(request.match_info['pk'])
-    await WORKER.poll_device(pk)
+    await worker.WORKER.poll_device(pk)
     return web.json_response({
         "status": "ok", "msg": ""}, status=200)
 
