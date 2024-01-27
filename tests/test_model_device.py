@@ -1,44 +1,50 @@
-import asyncio
 import unittest
-import random
-import potnanny.database as db
 from unittest import IsolatedAsyncioTestCase
+from potnanny.database import db
 from potnanny.models.device import Device
-from potnanny.models.measurement import Measurement
-from potnanny.models.interface import ObjectInterface
-from potnanny.plugins.base import BluetoothDevicePlugin
 
 
-class MyClass(BluetoothDevicePlugin):
-    name = "test"
-    description = "testing desc"
-    reports = ['temperature', 'humidity']
-
-    def __init__(self, *args, **kwargs):
-        pass
+async def init_tables():
+    db.init('aiosqlite:////tmp/test.db')
+    async with db.connection():
+        await Device.create_table()
 
 
-class TestDeviceModel(IsolatedAsyncioTestCase):
-# ###############################################
+class TestModels(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
-        uri = 'sqlite+aiosqlite://'
-        await db.init_db(uri)
+        await init_tables()
 
     async def asyncTearDown(self):
         pass
 
     async def test_create(self):
-        obj = Device(
-            interface='__main__.MyClass',
-            attributes={'address': '11:22:33:44:55:66'},
-            name='11-22-33-44-55-66',
-        )
+        async with db.connection():
+            device = await Device.create(name='device 1',
+                interface='foo.bar.baz')
+            await device.save()
+            assert device.id > 0
 
-        await obj.insert()
-        assert obj.id >= 0
-        assert obj.attributes['address'] == '11:22:33:44:55:66'
-        assert 'vpd' in obj.as_dict()['reports']
+    async def test_update(self):
+        async with db.connection():
+            device = await Device.create(name='device 2',
+                interface='foo.bar.baz')
+            await device.save()
+
+            device.attributes = {'foo': 'bar'}
+            await device.save()
+            assert device.attributes == {'foo': 'bar'}
+
+    async def test_delete(self):
+        async with db.connection():
+            device = await Device.create(name='device 3',
+                interface='foo.bar.baz')
+            await device.save()
+            pk = device.id
+            await device.delete_instance()
+
+            row = await Device.select().where(Device.name == 'device 3')
+            assert len(row) == 0
 
 
 if __name__ == '__main__':

@@ -1,2 +1,0 @@
-recursive-include potnanny/api/static *
-recursive-include potnanny/api/templates *

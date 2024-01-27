@@ -1,19 +1,18 @@
-import datetime
-import logging
 import asyncio
-from potnanny.utils import utcnow, load_plugins
+import logging
+import datetime
+from threading import Event
+from potnanny.utils import utcnow
+from potnanny.plugins.utils import load_plugins
 from potnanny.models.device import Device
 from potnanny.models.keychain import Keychain
-from potnanny.models.interface import ObjectInterface
-from potnanny.locks import LOCKS
-from potnanny.events import WORKER_EVENT
-from potnanny.controllers.poll import Poller
-from potnanny.controllers.schedule import run_schedules
+from potnanny.controllers.collector import Collector
 from potnanny.controllers.cleanup import purge_measurements
 
 
 logger = logging.getLogger(__name__)
 WORKER = None
+WORKER_STOP = Event()
 TASK = None
 
 
@@ -24,6 +23,8 @@ async def run_worker():
 
     global TASK
     global WORKER
+    WORKER_STOP.clear()
+
     logger.debug("Starting worker task")
     WORKER = Worker()
     TASK = asyncio.create_task(WORKER.run())
@@ -35,7 +36,7 @@ async def stop_worker():
     """
 
     logger.debug("Stopping worker task")
-    WORKER_EVENT.set()
+    WORKER_STOP.set()
 
 
 async def restart_worker():
@@ -60,41 +61,33 @@ class Worker:
 
 
     async def load_settings(self):
-        try:
-            obj = await ObjectInterface(Keychain).get_by_name('settings')
-            for k, v in obj.attributes.items():
-                if hasattr(self, k):
-                    setattr(self, k, v)
-                elif k == 'temperature_display':
-                    if v in ['f','F']:
-                        self.convert_c = True
-        except:
-            pass
+        results = await Keychain.select().where(Keychain.name == 'settings')
+        obj = results[0]
+        for k, v in obj.attributes.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            elif k == 'temperature_display':
+                if v in ['f','F']:
+                    self.convert_c = True
 
-
-    async def load_plugins(self):
         load_plugins(self.plugin_path)
 
 
     async def run(self):
         await self.load_settings()
-        await self.load_plugins()
 
-        while not WORKER_EVENT.is_set():
-            unow = datetime.datetime.utcnow().replace(microsecond=0)
+        while not WORKER_STOP.is_set():
+            now = datetime.datetime.utcnow().replace(microsecond=0)
 
             # at midnight we clean old records
-            if unow.hour == 0 and unow.minute == 0 and unow.second == 0:
-                start = unow - datetime.timedelta(days=self.storage_days)
+            if now.hour == 0 and now.minute == 0 and now.second == 0:
+                start = now - datetime.timedelta(days=self.storage_days)
                 logger.debug(f"cleaning up measurements older than {start}")
                 t1 = asyncio.create_task(purge_measurements(start))
 
-            if unow.second == 0:
-                # run schedules at top of every minute
-                t2 = asyncio.create_task(run_schedules())
-
+            if now.second == 0:
                 # poll devices at intervals
-                if unow.minute % self.polling_interval == 0:
+                if now.minute % self.polling_interval == 0:
                     t3 = asyncio.create_task(self.poll_devices())
 
             await asyncio.sleep(1)
@@ -105,24 +98,24 @@ class Worker:
         poll active devices for information
         """
 
-        logger.debug("polling devices")
+        logger.debug("polling all devices")
         opts = {
             'convert_c': self.convert_c,
             'leaf_offset': self.leaf_offset}
 
-        p = Poller(**opts)
-        await p.poll()
+        c = Collector(**opts)
+        asyncio.create_task(c.collect())
 
 
-    async def poll_device(self, pk: int):
+    async def poll_device(self, pk:int):
         """
         poll device for information
         """
 
-        logger.debug(f"polling single device {pk}")
+        logger.debug(f"polling single device ({pk})")
         opts = {
             'convert_c': self.convert_c,
             'leaf_offset': self.leaf_offset}
 
-        p = Poller(**opts)
-        await p.poll_id(pk)
+        c = Collector(**opts)
+        asyncio.create_task(c.collect_id(pk))

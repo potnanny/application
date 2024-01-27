@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form method="POST" id="myForm">
+        {{ form.hidden_tag() }}
+        <div class="mt-2">
+            {{ form.name.label(class_="form-label") }}
+            {{ form.name(class_="form-control") }}
+        </div>
+        <div class="mt-2">
+            {{ form.notes.label(class_="form-label") }}
+            {{ form.notes(class_="form-control") }}
+        </div>
+        <div class="row row-cols-2 mt-3">
+            <div class="col">
+                <input type="submit" class="w-100 btn btn-outline-primary" value="Save">
+            </div>
+            {%- if form.id.data -%}
+            <div class="col">
+                <input type="submit" class="w-100 btn btn-outline-danger" value="Delete" onclick="setDeleteFlag(this); return false;" />
+            </div>
+            {%- endif -%}
+        </div>
+    </form>
+    <script>
+        const setDeleteFlag = function(e) {
+            if (confirm("Do you really want to delete this?")) {
+                try {
+                    document.getElementById('remove').value = 'true';
+                    document.getElementById("myForm").submit();
+                } catch(err) {
+                    console.log(err);
+                }
+            }
+        }
+    </script>
+{% endblock %}

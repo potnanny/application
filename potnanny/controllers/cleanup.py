@@ -1,27 +1,21 @@
 import asyncio
 import logging
-from sqlalchemy import delete
-from potnanny.models.interface import execute_statement
+import datetime
+from potnanny.database import db
 from potnanny.models.measurement import Measurement
-from potnanny.models.error import Error
 
 
 logger = logging.getLogger(__name__)
 
 
-async def purge_measurements(cutoff):
+async def purge_measurements(cutoff:datetime.datetime):
     """
     Remove measurements from table when older than cutoff datetime
     """
 
     try:
-        stmt = (delete(Measurement).where(Measurement.created < cutoff))
-        result = await execute_statement(stmt)
-    except Exception as x:
-        logger.warning(x)
-
-    try:
-        stmt = (delete(Error).where(Error.created < cutoff))
-        result = await execute_statement(stmt)
+        async with db.connection():
+            query = Measurement.delete().where(Measurement.created < cutoff)
+            results = await query.execute()
     except Exception as x:
         logger.warning(x)

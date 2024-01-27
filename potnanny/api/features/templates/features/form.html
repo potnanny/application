@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form method="POST" id="myForm">
+        {{ form.csrf_token }}
+        <div class="mt-2">
+            <div class="alert alert-warning">
+            Do not load any license keys unless they come directly from Potnanny! Someone could be injecting malicious software into your system!
+            </div>
+        </div>
+        <div class="mt-2">
+            {{ form.license.label(class_="form-label") }}
+            {% if form.license.errors %}
+            {{ form.license(class_="form-control is-invalid") }}
+            {% else %}
+            {{ form.license(class_="form-control") }}
+            {% endif %}
+            <div class="invalid-feedback" id="license-feedback">
+                {% for error in form.license.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row row-cols-2 mt-3">
+            <div class="col">
+                <input id="submit" type="submit" class="w-100 btn btn-outline-primary" value="Submit">
+            </div>
+        </div>
+    </form>
+{% endblock %}

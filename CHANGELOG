@@ -1,3 +1,23 @@
+0.4.2       Fixes to Schedule controls, and room graphing
+
+0.4.1       Changes to Bleak scanner (use context mgr rather than stop/start),
+            to prevent hanging.
+            Added graph hours to settings.
+
+0.4.0       Migrated away from SQLAlchemy, due to performance issues since
+            version 2.0. Now using Peewee/Peewee-aio as the ORM.
+
+0.3.1       Removed the models.interface ObjectInterface class, and moved all
+            of its functionality into the CRUDMixin class (as classmethods) for
+            easier, cleaner functionality. Rewrote all tests using the old
+            interface.
+
+0.3.0       Migrated away from aiohttp with a full mithril.js front end, and
+            converted to instead use Quart (async flask engine), to make html
+            rendering and templating, and CSRF protection, much easier.
+            Some mithril.js is still used (for modal forms, mostly), but the
+            Jinja template rendering makes many server side decisions easier.
+
 0.2.4       Fixed module reference bug with the worker.WORKER
 
 0.2.3       Fixed mithril/javascript bug, preventing authentication

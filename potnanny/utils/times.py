@@ -94,4 +94,3 @@ def iso_from_sqlite(txt, utc=True):
             return dt.isoformat()
     else:
         return None
-

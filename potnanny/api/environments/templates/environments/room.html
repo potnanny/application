@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {{ super() }}
+    <script>
+        var CSRF_TOKEN = "{{ csrf_token() }}";
+        try {
+            var mySuffixes = {{ suffixes | tojson }};
+        } catch(err) {
+            console.log(err);
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/min/common.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/environments.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/rooms.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/devices.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/controls.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/outlets.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/modals.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/graphs.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/chart.umd.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+{%- if data -%}
+    <h3 class="mb-3">{{ data.name }}</h3>
+    <div class="row row-cols-1 row-cols-lg-2">
+    {%- for device in data.devices -%}
+        <div class="col">
+            <div class="card mb-3" id="device-{{ device.id }}">
+                <div class="card-header">
+                    <span class="float-end text-muted fw-light timestamp" style="font-size: 0.85em;" id="device-{{ device.id }}-created">{{ device.created }}</span>
+                    <span id="device-{{ device.id }}-name" class="text-decoration-none">{{ device.name }}</span>
+                    <span class="dropdown ms-1">
+                        <button type="button" data-bs-toggle=dropdown class="btn dropdown-toggle py-0 px-1 m-0">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="javascript:" onclick="deviceNameModal({{ device.id }})" class="dropdown-item text-decoration-none">Rename</a></li>
+                            <li><a href="javascript:" onclick="deviceFormModal({{ device.id }})" class="dropdown-item text-decoration-none">Edit</a></li>
+                            <li><a href="javascript:" onclick="deleteDevice(({{ device.id }})" class="dropdown-item text-decoration-none">Delete</a></li>
+                        </ul>
+                    </span>
+                </div>
+                <div class="card-body row">
+                    {%- for key in device.measurements.keys() | sort -%}
+                    <div class="col text-center mb-1">
+                        {%- if key.startswith('outlet') -%}
+                        <div class="btn-group mb-1 mt-1">
+                            <button type="button" class="btn btn-outline-primary py-0 px-2 fs-5">
+                                <i id="device-{{ device.id }}-{{ key }}" class="bi bi-toggle-{%- if device.measurements[key] == 0 -%}off{% else %}on{%- endif -%}" onclick="toggleOutlet({{ device.id }}, '{{ key }}')"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary py-0 px-2 fs-5">
+                                <i class="bi bi-dpad" onclick="controlForm({{ device.id }}, '{{ key }}')"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary py-0 px-2 fs-5">
+                                <i class="bi bi-file-bar-graph" onclick="buildModalChart('{{ url_for('graphs.device', pk=device.id, measurement=key, hours=12) }}')"></i>
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="fs-3">
+                            <a href="javascript:" id="device-{{ device.id }}-{{ key }}" onclick="buildModalChart('{{ url_for('graphs.device', pk=device.id, measurement=key, hours=12) }}')" class="text-decoration-none">
+                            {%- if key in ['temperature','vpd'] -%}
+                                {{ '%0.1f' | format(device.measurements[key]) }}{%- if key in suffixes.keys() -%}{{ suffixes[key] }}{%- endif -%}
+                            {% else %}
+                                {{ device.measurements[key] | int }}{%- if key in suffixes.keys() -%}{{ suffixes[key] }}{%- endif -%}
+                            {%- endif -%}
+                            </a>
+                        </div>
+                        {%- endif -%}
+                        <div class="text-uppercase" style="font-size: 0.6em;">
+                            {{ key }}
+                        </div>
+                    </div>
+                    {%- endfor -%}
+                </div>
+            </div>
+        </div>
+    {%- endfor -%}
+{% endif %}
+    <script>
+        const myRoom = {{ data.id }};
+
+        RoomEnvironment.loadList(myRoom);
+        if (window.addEventListener) {
+            window.addEventListener('load', localizeTimestamps, false);
+        }
+
+        const deleteDevice = function(pk) {
+            Device.load(pk);
+            if (confirm("Are you sure you want to delete this device and data?")) {
+                Device.delete(Number(pk));
+                setTimeout(function() { window.location.reload(); }, 1500);
+            }
+        }
+
+        window.setInterval(function() {
+            RoomEnvironment.loadList(myRoom);
+        }, 10000);
+        window.setInterval(function() {
+            updateRoomEnvironments();
+        }, 5000);
+    </script>
+{% endblock %}

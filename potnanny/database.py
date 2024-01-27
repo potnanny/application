@@ -1,151 +1,121 @@
 import os
+import asyncio
 import logging
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy.ext.asyncio import (create_async_engine, AsyncSession,
-    AsyncAttrs)
-from potnanny.utils import hash_password, random_key
+import peewee
+from peewee_aio import Manager, AIOModel, fields
+from peewee_aio.databases import get_db
+from peewee import DatabaseProxy, logger
+from weakref import WeakSet
+from potnanny.utils.password import hash_password, verify_password
 
 
-engine = None
-session = None
 logger = logging.getLogger(__name__)
+lock = asyncio.Lock()
 
 
-class Base(AsyncAttrs, DeclarativeBase):
-    pass
+class Database(Manager):
+    def __init__(self):
+        self.url = None
+        self.backend_options = {}
+        self.pw_database = DatabaseProxy()
+
+    def init(self, url:str, **backend_options):
+        if not url and not self.url:
+            raise ValueError("DB url was never given!")
+        backend_options.setdefault("convert_params", True)
+        self.backend_options.update(backend_options)
+        super(Manager, self).__init__(url or self.url, logger=logger,
+			**self.backend_options)
+
+        self.models = WeakSet()
+        self.pw_database.initialize(get_db(self))
 
 
-async def init_db(uri, **kwargs):
-    """
-    Create db engine, sessionmaker, and tables.
-    args:
-        - uri, str
-    returns:
-    """
-
-    if not engine:
-        await init_engine(uri, **kwargs)
-
-    if not session:
-        await init_sessionmaker(engine)
-
-    await init_tables()
+db = Database()
 
 
-async def init_engine(uri, **kwargs):
-    """
-    Init the engine.
+class BaseModel(AIOModel):
+    __rel__: {}
+    _manager = db
 
-    args:
-        - uri, sqlalchemy engine db uri init string
-        - optional keyword args to pass to sqlalchemy create_async_engine func
-    returns:
-    """
-
-    global engine
-    logger.debug(f"Initializing db engine {uri}")
-    engine = create_async_engine(uri, **kwargs)
+    class Meta:
+        database = db.pw_database
 
 
-async def init_sessionmaker(engine=engine):
-    """
-    Init the sessionmaker function with the engine.
-
-    args:
-        - an engine instance
-    returns:
-    """
-
-    global session
-    logger.debug("Initializing db session")
-    session = sessionmaker(engine,
-        expire_on_commit=False, class_=AsyncSession)
+async def init_db(url:str, **kwargs):
+	db.init(url, **kwargs)
+	await init_tables()
 
 
 async def init_tables():
-    """
-    Create tables based on sqlalchemy models.
+    from .models.room import Room
+    from .models.device import Device
+    from .models.measurement import Measurement
+    from .models.keychain import Keychain
+    from .models.control import Control
+    from .models.license import License
+    from .models.user import User
 
-    args:
-    returns:
-    """
+    db.register(Room)
+    db.register(Device)
+    db.register(Measurement)
+    db.register(Keychain)
+    db.register(Control)
+    db.register(License)
+    db.register(User)
 
-    logger.debug("Importing models")
+    async with db.connection():
+        await Room.create_table()
+        await Device.create_table()
+        await Measurement.create_table()
+        await Keychain.create_table()
+        await Control.create_table()
+        await User.create_table()
+        await License.create_table()
 
-    # import the  models
-    from potnanny.models.keychain import Keychain
-    from potnanny.models.user import User
-    from potnanny.models.room import Room
-    from potnanny.models.device import Device
-    from potnanny.models.measurement import Measurement
-    from potnanny.models.control import Control
-    from potnanny.models.schedule import Schedule
-    from potnanny.models.error import Error
-    from potnanny.models.action import Action
-    from potnanny.models.trigger import Trigger
-
-    # create tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    # create app features and defaults
-    logger.debug("Initializing features")
-
-    try:
-        # create initial default config
-        opts = {
-            'name': 'settings',
-            'protected': True,
-            'attributes': {
-                'temperature_display': 'F',
-                'polling_interval': 10,
-                'plugin_path': os.path.expanduser('~/potnanny/plugins'),
-                'leaf_offset': -2,
-                'storage_days': 5,
+        try:
+            # create default settings
+            s_opts = {
+                'name': 'settings',
+                'protected': True,
+                'attributes': {
+                    'temperature_display': 'F',
+                    'polling_interval': 10,
+                    'plugin_path': os.path.expanduser('~/potnanny/plugins'),
+                    'leaf_offset': -2,
+                    'storage_days': 7,
+                    'graph_hours': 18,
+                }
             }
-        }
-        kc = Keychain(**opts)
-        await kc.insert()
-    except:
-        pass
+            obj = await Keychain.create(**s_opts)
+            await obj.save()
+        except:
+            pass
 
-    try:
-        # create the default admin user
-        attrs = {
-            'name': 'admin',
-            'roles': 'admin,user',
-            'password': hash_password('potnanny!'),
-        }
-        user = User(**attrs)
-        await user.insert()
-    except:
-        pass
-
-    try:
-        # create base feature set
-        opts = {
-            'name': 'features',
-            'protected': True,
-            'attributes': {
-                'room_limit': 1,
-                'device_limit': 4
+        try:
+            # create default features
+            f_opts = {
+                'name': 'features',
+                'protected': True,
+                'attributes': {
+                    'room_limit': 1,
+                    'device_limit': 4,
+                }
             }
-        }
-        kc = Keychain(**opts)
-        await kc.insert()
-    except:
-        pass
+            obj = await Keychain.create(**f_opts)
+            await obj.save()
+        except:
+            pass
 
-    try:
-        # create api key
-        opts = {
-            'name': 'api_key',
-            'protected': True,
-            'attributes': {
-                'key': random_key()
+        try:
+            # create default user
+            u_opts = {
+                'name': 'admin',
+                'password': hash_password('potnanny!'),
+                'protected': True,
+                'roles': "user,admin"
             }
-        }
-        kc = Keychain(**opts)
-        await kc.insert()
-    except:
-        pass
+            u = await User.create(**u_opts)
+            await u.save()
+        except:
+            pass

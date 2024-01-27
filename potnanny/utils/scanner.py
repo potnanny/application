@@ -1,7 +1,8 @@
 import asyncio
 import logging
 from bleak import BleakScanner
-from potnanny.locks import LOCKS
+from potnanny.ble import lock
+
 
 logger = logging.getLogger(__name__)
 
@@ -9,13 +10,12 @@ logger = logging.getLogger(__name__)
 class BLEScanner:
 
     def __init__(self, *args, **kwargs):
-        self.lock = LOCKS['bluetooth']
         for k, v in kwargs.items():
             if hasattr(self, k):
                 setattr(self, k, v)
 
 
-    async def scan_advertised(self, seconds=3, callback=None):
+    async def scan_advertised(self, seconds=5, callback=None):
         """
         scan for BLE device advertisement data
 
@@ -34,21 +34,15 @@ class BLEScanner:
 
         async def callback_scan(cb, timeout=1):
             try:
-                scanner = BleakScanner()
-                scanner.register_detection_callback(cb)
-                await scanner.start()
-                await asyncio.sleep(timeout)
-                await scanner.stop()
+                async with BleakScanner(cb) as scanner:
+                    await asyncio.sleep(timeout)
             except Exception as x:
                 logger.warning(x)
 
         if callback is None:
             callback = default_callback
 
-        if self.lock:
-            async with self.lock:
-                await callback_scan(callback, seconds)
-        else:
+        async with lock:
             await callback_scan(callback, seconds)
 
         return discovered
@@ -78,11 +72,8 @@ class BLEScanner:
         """
 
         devices = None
-        if self.lock:
-            async with self.lock:
-                devices = await BleakScanner.discover()
-        else:
+
+        async with lock:
             devices = await BleakScanner.discover()
 
         return devices
-

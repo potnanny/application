@@ -1,92 +1,79 @@
-import re
+import asyncio
 import logging
-import calendar
 import datetime
-from typing import Any
-from sqlalchemy import func, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from marshmallow import fields
+import marshmallow
+import calendar
+from peewee_aio import fields
+from potnanny.database import BaseModel
 from potnanny.models.schemas.safe import SafeSchema
-from potnanny.utils import utcnow
-from potnanny.database import Base
-from potnanny.models.mixins import CRUDMixin
-from potnanny.models.ext import MutableDict, JSONEncodedDict
 from potnanny.models.weekday import WeekdayMap
 from potnanny.controllers.outlet import switch_device_outlet
+from .device import Device
 
 
 logger = logging.getLogger(__name__)
 
 
 class ScheduleSchema(SafeSchema):
-    name = fields.String(allow_none=False)
-    device_id = fields.Integer(allow_none=True)
-    outlet = fields.Integer(allow_none=False)
-    on_time = fields.String(allow_none=False)
-    off_time = fields.String(allow_none=False)
-    days = fields.Integer(allow_none=False)
+    name = marshmallow.fields.String(allow_none=False)
+    on_time = marshmallow.fields.String(allow_none=False)
+    off_time = marshmallow.fields.String(allow_none=False)
+    days = marshmallow.fields.Integer(allow_none=False)
+    outlet = marshmallow.fields.Integer(allow_none=False)
+    device_id = marshmallow.fields.Integer(allow_none=True)
 
 
-class Schedule(Base, CRUDMixin):
-    """
-    Time is like: "13:30" (24h/UTC based)
-    Days is an INT, based on:
-     sunday=64, mon=32, tue=16, wed=8, thu=4, fri=2, sat=1
-    """
+class Schedule(BaseModel):
+    id = fields.AutoField()
+    name = fields.CharField(48)
+    days = fields.IntegerField()
+    on_time = fields.TimeField()
+    off_time = fields.TimeField()
+    outlet = fields.IntegerField()
+    created = fields.DateTimeField(default=datetime.datetime.utcnow)
+    device = fields.ForeignKeyField(Device,
+        on_delete='CASCADE',
+        backref='schedules' )
 
-    __tablename__ = 'schedules'
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    outlet: Mapped[int]
-    days: Mapped[int]
-    on_time: Mapped[str]
-    off_time: Mapped[str]
-    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-
-    # make relationships compatible with asyncio sessions
-    __mapper_args__ = {"eager_defaults": True}
-
-    # relationships
-    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id"))
-
-
-    def __repr__(self):
-        return "<Schedule ({}, {}, {})>".format(self.id, self.on_time, self.off_time)
-
+    def __str__(self):
+        return f"<Schedule id={self.id}>"
 
     def as_dict(self):
         return {
             'id': self.id,
+            'name': self.name,
             'days': self.days,
-            'on_time': self.on_time,
-            'off_time': self.off_time,
+            'on_time': ":".join(str(self.on_time).split(":")[0:2]),
+            'off_time': ":".join(str(self.off_time).split(":")[0:2]),
             'outlet': self.outlet,
             'device_id': self.device_id,
             'created': self.created.isoformat() + "Z",
         }
 
+    def runs_now(self,
+        now:datetime.datetime = datetime.datetime.now(),
+        show_key: bool = True):
 
-    def runs_now(self, now=None, show_key=False):
         """
-        Does this schedule need to run now? True|False
+        Does this schedule need to run now?
         """
 
-        if now is None or type(now) is not datetime.datetime:
-            now = datetime.datetime.now()
-
+        possible_days = WeekdayMap.weekdays_from_value(self.days)
         dow = calendar.day_name[now.weekday()]
-        if dow not in WeekdayMap.weekdays_from_value(self.days):
-            return False
+        if dow not in possible_days:
+            if show_key:
+                return (False, None)
+            else:
+                return False
 
         for key in ['on', 'off']:
-            label = "%s_time" % key
+            label = f"{key}_time"
             if not hasattr(self, label):
                 continue
 
             try:
-                hh, mm = getattr(self, label).split(':')
-                if int(hh) == now.hour and int(mm) == now.minute:
+                hh, mm = str(getattr(self, label)).split(':')[0:2]
+                if int(hh) == int(now.hour) and int(mm) == int(now.minute):
                     if show_key is True:
                         return (True, key)
                     else:
@@ -100,21 +87,16 @@ class Schedule(Base, CRUDMixin):
             return False
 
 
-    async def run(self, now=None):
+    async def run(self, now:datetime.datetime = datetime.datetime.now()):
         """
         Run this schedule now
         """
 
-        if now is None or type(now) is not datetime.datetime:
-            # schedule times are stored according to user local time,
-            # so we cannot use UTC here. This... shoud be normalized someday,
-            # but its a pain in the ass otherwise.
-            now = datetime.datetime.now()
-
         true, key = self.runs_now(now, True)
-        if not true:
+        if true is not True:
             return
 
+        logger.debug(f"This schedule runs now! {self}")
         try:
             state = 1
             if (key == 'off'):
@@ -122,6 +104,10 @@ class Schedule(Base, CRUDMixin):
 
             logger.debug("Switching device %d, outlet %d %s" % (
                 self.device_id, self.outlet, key.upper()))
+            rval = await switch_device_outlet(
+                self.device_id, self.outlet, state)
+            # sleep a while, and switch it again... just to be sure
+            await asyncio.sleep(45)
             rval = await switch_device_outlet(
                 self.device_id, self.outlet, state)
         except Exception as x:

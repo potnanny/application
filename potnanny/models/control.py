@@ -1,69 +1,57 @@
-import re
-import asyncio
 import logging
+import asyncio
 import datetime
-from typing import Any
-from sqlalchemy import func, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from marshmallow import fields
-from potnanny.models.schemas.safe import SafeSchema
-from potnanny.database import Base
+import marshmallow
+import potnanny.controllers.worker as worker
+from peewee_aio import fields
+from potnanny.database import BaseModel
 from potnanny.controllers.outlet import switch_device_outlet
-from potnanny.utils import evaluate
-from potnanny.models.mixins import CRUDMixin
-from potnanny.models.ext import MutableDict, JSONEncodedDict
+from potnanny.models.schemas.safe import SafeSchema
+from potnanny.utils.eval import evaluate
+from .device import Device
+from .ext import JSONField
 
 
 logger = logging.getLogger(__name__)
 
 
 class ControlSchema(SafeSchema):
-    name = fields.String()
-    device_id = fields.Integer()
-    outlet = fields.Integer()
-    attributes = fields.Dict(allow_none=True)
+    name = marshmallow.fields.String()
+    device_id = marshmallow.fields.Integer()
+    outlet = marshmallow.fields.Integer()
+    attributes = marshmallow.fields.Dict(allow_none=True)
 
 
-class Control(Base, CRUDMixin):
-    __tablename__ = 'controls'
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    outlet: Mapped[int]
-    attributes: Mapped[dict[str, Any]] = mapped_column(MutableDict.as_mutable(JSONEncodedDict))
-    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-
-    # make relationships compatible with asyncio sessions
-    __mapper_args__ = {"eager_defaults": True}
-
-    # relationships
-    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id"))
+class Control(BaseModel):
+    id = fields.AutoField()
+    name = fields.CharField(48)
+    outlet = fields.IntegerField()
+    attributes = JSONField(default={})
+    created = fields.DateTimeField(default=datetime.datetime.utcnow)
+    device = fields.ForeignKeyField(Device,
+        on_delete='CASCADE',
+        backref='controls' )
 
 
-    def __repr__(self):
-        return "<Control ({})>".format(self.name)
+    def __str__(self):
+        return f"<Control id={self.id}, name='{self.name}'>"
 
 
-    def as_dict(self):
-        data = {
+    def as_dict(self) -> dict:
+        return {
             'id': self.id,
             'name': self.name,
-            'created': self.created.isoformat() + "Z",
-            'device_id': self.device_id,
             'outlet': self.outlet,
+            'device_id': self.device_id,
             'attributes': self.attributes,
+            'created': self.created.isoformat() + "Z",
         }
 
-        return data
 
-
-    async def input(self, data):
+    async def input(self, data:dict):
         """
         Accept measurement data as input, evaluate, and perform on/off control
         as required:
-        args:
-            - dict (measurement data
-        returns:
         """
 
         if self._precheck(data) is not True:
@@ -82,26 +70,29 @@ class Control(Base, CRUDMixin):
                 working['condition'],
                 working['threshold'])
 
-            if evaluate(equation) is True:
-                state = states[key]
+            try:
+                if evaluate(equation) is True:
+                    state = states[key]
 
-                # switch device to state
-                t1 = asyncio.create_task(self.switch_task(
-                    self.device_id,
-                    self.outlet,
-                    state))
-
-                # timed switch? set back to original state after seconds...
-                if 'seconds' in working and int(working['seconds']) > 0:
-                    t2 = asyncio.create_task(self.switch_task(
+                    # switch device to state
+                    t1 = asyncio.create_task(self.switch_task(
                         self.device_id,
                         self.outlet,
-                        int(not state),
-                        int(working['seconds'])
-                    ))
+                        state))
+
+                    # timed switch? set back to original state after N seconds...
+                    if 'seconds' in working and int(working['seconds']) > 0:
+                        t2 = asyncio.create_task(self.switch_task(
+                            self.device_id,
+                            self.outlet,
+                            int(not state),
+                            int(working['seconds'])
+                        ))
+            except Exception as x:
+                logger.warning(x)
 
 
-    def _precheck(self, data):
+    def _precheck(self, data:dict) -> bool:
         """
         examine incoming data, decide if it is valid for us
         """
@@ -123,12 +114,16 @@ class Control(Base, CRUDMixin):
         return True
 
 
-    async def switch_task(self, device: int, outlet: int, state: int, delay: int = 0):
+    async def switch_task(self, device:int, outlet:int, state:int, delay:int = 0):
         try:
             if delay:
                 await asyncio.sleep(delay)
-                await switch_device_outlet(device, outlet, state)
+                rval = await switch_device_outlet(device, outlet, state)
+                return rval
             else:
-                await switch_device_outlet(device, outlet, state)
+                rval = await switch_device_outlet(device, outlet, state)
+                return rval
         except Exception as x:
             logger.warning(x)
+
+        return -1

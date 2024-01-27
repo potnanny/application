@@ -1,34 +1,39 @@
-import asyncio
 import unittest
 from unittest import IsolatedAsyncioTestCase
-import potnanny.database as db
-from potnanny.plugins.mixins import InterfaceMixin
-from potnanny.plugins import ActionPlugin
+from potnanny.database import db
+from potnanny.models.device import Device
+from potnanny.plugins.utils import load_plugins
 
 
-class DeviceTest(ActionPlugin):
-    pass
+async def init_tables():
+    db.init('aiosqlite:////tmp/test.db')
+    async with db.connection():
+        await Device.create_table()
 
 
-class TestMixins(IsolatedAsyncioTestCase):
-# ###############################################
+class TestModels(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
-        uri = 'sqlite+aiosqlite://'
-        await db.init_db(uri)
-
+        print("loading plugins...")
+        load_plugins('~/potnanny/plugins')
+        await init_tables()
 
     async def asyncTearDown(self):
         pass
 
+    async def test_setup(self):
+        opts = {
+            'name': 'SwitchBot Hygrometer',
+            'interface': 'device.ble.switchbot_hygrometer.SwitchbotHygrometer',
+            'attribute': {"address": "EB:B3:0E:C7:7C:D2"}
+        }
 
-    async def test_find(self):
-        name = '__main__.DeviceTest'
-        klass = InterfaceMixin.class_from_name(name)
-        obj = klass()
-        assert type(obj) is DeviceTest
+        d = await Device.create(**opts)
+        await d.save()
+        print("device saved")
 
-
+        print("device plugin details...")
+        print(d.plugin)
 
 
 if __name__ == '__main__':

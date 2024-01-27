@@ -1,89 +1,92 @@
 import os
-import asyncio
-import logging
-import jinja2
-import aiohttp_jinja2
-import aiohttp_cors
-import base64
-from cryptography.fernet import Fernet
-from aiohttp import web
-from aiohttp_session import setup, SimpleCookieStorage
-from aiohttp_session.cookie_storage import EncryptedCookieStorage
-from potnanny.utils.pw import random_key
-from .index import routes as index_routes
-from .auth import routes as auth_routes
-from .users import routes as user_routes
-from .keychains import routes as keychain_routes
-from .rooms import routes as room_routes
-from .devices import routes as device_routes
-from .environments import routes as environment_routes
-from .settings import routes as setting_routes
-from .actions import routes as action_routes
-from .controls import routes as control_routes
-from .schedules import routes as schedule_routes
-from .utils import routes as util_routes
-from .plugins import routes as plugin_routes
-from .tests import routes as test_routes
-from .wifi import routes as wifi_routes
+from quart import Quart, redirect, url_for
+from quart_wtf.csrf import CSRFProtect
+from quart_auth import QuartAuth, Unauthorized
+from potnanny.models.user import SessionUser
 
 
-logger = logging.getLogger(__name__)
+# globals #
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+auth_manager = QuartAuth()
+auth_manager.user_class = SessionUser
 
 
-def init_api():
-    logger.debug("Initializing Web API")
-
-    app = web.Application()
-
-    # setup static path handling
-    app['static_root_url'] = '/static'
-    static_path = os.path.join(os.path.dirname(__file__), "static")
-    app.router.add_static('/static', static_path, name='static')
-
-     # session cookie storage
-    key = Fernet.generate_key()
-    secret = base64.urlsafe_b64decode(key)
-    setup(app, EncryptedCookieStorage(secret,
-        cookie_name='POTNANNY_API',
-        samesite="None",
-        secure=True
-        )
-    )
-
-    # simple cookie storage for devel ONLY
-    # setup(app, SimpleCookieStorage())
-
-    # plug in jinja template handling
-    aiohttp_jinja2.setup(app,
-        loader=jinja2.FileSystemLoader(
-            os.path.join(os.path.dirname(__file__), "templates")))
-
-    # add routing to endpoints
-    app.add_routes(index_routes)
-    app.add_routes(auth_routes)
-    app.add_routes(user_routes)
-    app.add_routes(room_routes)
-    app.add_routes(device_routes)
-    app.add_routes(keychain_routes)
-    app.add_routes(environment_routes)
-    app.add_routes(setting_routes)
-    app.add_routes(util_routes)
-    app.add_routes(plugin_routes)
-    app.add_routes(action_routes)
-    app.add_routes(control_routes)
-    app.add_routes(schedule_routes)
-    app.add_routes(test_routes)
-    app.add_routes(wifi_routes)
-
-    logger.debug("Building CORS routes")
-    cors = aiohttp_cors.setup(app, defaults={
-        "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=True,
-            expose_headers="*",
-            allow_headers="*",
-        )
-    })
-    for route in list(app.router.routes()):
-        cors.add(route)
-
+def init_application(config):
+    app = Quart(__name__, root_path=BASEDIR)
+    configure_app(app)
+    csrf = CSRFProtect(app)
+    auth_manager.init_app(app)
+    load_blueprints(app)
+    load_views()
+    load_handlers(app)
     return app
+
+
+def configure_app(app):
+    app.config['SECRET_KEY'] = os.getenv('POTNANNY_SECRET')
+    app.config['WTF_CSRF_SECRET_KEY'] = os.getenv('POTNANNY_SECRET')
+    app.config['WTF_CSRF_ENABLED'] = True
+    app.config['EXPLAIN_TEMPLATE_LOADING'] = False
+
+    # development
+    app.config['QUART_AUTH_COOKIE_SECURE'] = False
+
+def load_blueprints(app):
+    """
+    Load flask blueprints from web apps
+
+    args:
+        - Flask app instance
+    """
+
+    from potnanny.api.environments.views import bp as environments
+    from potnanny.api.rooms.views import bp as rooms
+    from potnanny.api.devices.views import bp as devices
+    from potnanny.api.keychains.views import bp as keychains
+    from potnanny.api.graphs.views import bp as graphs
+    from potnanny.api.utils.views import bp as utils
+    from potnanny.api.settings.views import bp as settings
+    from potnanny.api.controls.views import bp as controls
+    from potnanny.api.schedules.views import bp as schedules
+    from potnanny.api.features.views import bp as features
+    from potnanny.api.auth.views import bp as auth
+    from potnanny.api.about.views import bp as about
+
+    app.register_blueprint(environments)
+    app.register_blueprint(rooms)
+    app.register_blueprint(devices)
+    app.register_blueprint(keychains)
+    app.register_blueprint(graphs)
+    app.register_blueprint(utils)
+    app.register_blueprint(settings)
+    app.register_blueprint(controls)
+    app.register_blueprint(schedules)
+    app.register_blueprint(features)
+    app.register_blueprint(auth)
+    app.register_blueprint(about)
+
+
+def load_views():
+    """
+    Load views from any of the web apps
+    """
+
+    from potnanny.api.environments import views
+    from potnanny.api.rooms import views
+    from potnanny.api.devices import views
+    from potnanny.api.keychains import views
+    from potnanny.api.graphs import views
+    from potnanny.api.utils import views
+    from potnanny.api.settings import views
+    from potnanny.api.controls import views
+    from potnanny.api.schedules import views
+    from potnanny.api.features import views
+    from potnanny.api.auth import views
+    from potnanny.api.about import views
+
+
+def load_handlers(app):
+
+    @app.errorhandler(Unauthorized)
+    async def redirect_to_login(Exception):
+        return redirect(url_for("auth.login"))

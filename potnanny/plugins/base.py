@@ -10,9 +10,10 @@ class PluginBase(type):
             if cls not in cls.plugins:
                 cls.plugins.append(cls)
 
+
 class PluginFinder:
     @classmethod
-    def get_named_class(cls, name):
+    def get_named_class(cls, name:str):
         for p in cls.plugins:
             klass = '.'.join((p.__module__, p.__name__))
             if klass == name:
@@ -36,4 +37,3 @@ class ActionPlugin(PluginFinder, metaclass=PluginBase):
 
 class PipelinePlugin(PluginFinder, metaclass=PluginBase):
     pass
-

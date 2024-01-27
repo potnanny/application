@@ -2,16 +2,17 @@ import os
 import logging
 import yaml
 from types import SimpleNamespace
-from potnanny.models.interface import ObjectInterface
 from potnanny.models.keychain import Keychain
 from potnanny.utils import resolve_path
+from potnanny.database import db
 
 
 logger = logging.getLogger(__name__)
 DB_PATH = resolve_path('~/potnanny/potnanny.db')
 DEFAULTS = {
-    'database_uri': 'sqlite+aiosqlite:///' + DB_PATH,
+    'database_uri': 'aiosqlite:///' + DB_PATH,
     'log_path': resolve_path('~/potnanny/errors.log'),
+    'plugin_path': resolve_path('~/potnanny/plugins'),
 }
 
 
@@ -34,8 +35,11 @@ class Config:
         """
 
         self = cls()
-        obj = await ObjectInterface(Keychain).get_by_name('settings')
-        self._load_data(obj.attributes)
+        try:
+            obj = await Keychain.get(Keychain.name == 'settings')
+            self._load_data(obj.attributes)
+        except Exception as x:
+            logger.warning(str(x))
 
         return self
 
@@ -52,7 +56,7 @@ class Config:
                 continue
 
 
-    def _ns_to_dict(self, data):
+    def _ns_to_dict(self, data:dict):
         """
         If item is a SimpleNamespace, convert to dict, else return item.
 
@@ -68,7 +72,7 @@ class Config:
         return data
 
 
-    def _dict_to_ns(self, data):
+    def _dict_to_ns(self, data:dict):
         """
         If item is a dict, convert to a SimpleNamespace, else return item.
 
@@ -88,7 +92,7 @@ class Config:
         return ns
 
 
-    def _load_data(self, data):
+    def _load_data(self, data:dict):
         """
         Set dict values as self attributes
         """
@@ -121,7 +125,7 @@ class Config:
         self._dump_yaml_config(dict(self), self._file)
 
 
-    def _dump_yaml_config(self, data, path):
+    def _dump_yaml_config(self, data:dict, path:str):
         """
         Dump dict as yaml to named file.
 

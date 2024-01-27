@@ -1,58 +1,69 @@
-import asyncio
 import unittest
-import datetime
-import json
-import potnanny.database as db
 from unittest import IsolatedAsyncioTestCase
-from potnanny.models import Room, Device
-from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from potnanny.database import db
+from potnanny.models.room import Room, RoomSchema
 
 
-class TestRoomModel(IsolatedAsyncioTestCase):
-# ###############################################
+async def init_tables():
+    db.init('aiosqlite:////tmp/test.db')
+    async with db.connection():
+        await Room.create_table()
+
+
+class TestSchemas(IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        pass
+
+    async def asyncTearDown(self):
+        pass
+
+    async def test_basic_schema(self):
+        jsondata = {'name': 'test room', 'foo': 'bar'}
+        schema = RoomSchema()
+        data = schema.load(jsondata)
+        assert data is not None
+        assert 'foo' not in data
+
+
+class TestModels(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
-        uri = 'sqlite+aiosqlite://'
-        await db.init_db(uri)
+        await init_tables()
 
     async def asyncTearDown(self):
         pass
 
     async def test_create(self):
-        r = Room(
-            name='test room 1',
-            notes='test')
-        await r.insert()
-        assert r.id >= 0
+        async with db.connection():
+            room = await Room.create(name='room 1')
+            await room.save()
+            assert room.id > 0
 
-    async def test_relationships(self):
-        r = Room(name='test room 2')
-        await r.insert()
+        assert isinstance(room.as_dict(), dict)
 
-        i = Device(
-            name='test input 2',
-            notes='test',
-            interface='plugins.input.ble.test.TestInput',
-            attributes={'address': '11:22:33:44:55:66'},
-            room_id=r.id)
-        await i.insert()
 
-        # each of the above insert()s was performed in a different session.
-        # so, we must re-query the room, to get all objects together in one
-        # session...
-        room = None
-        async with db.session() as session:
-            stmt = select(Room).filter(
-                Room.name == 'test room 2').options(
-                selectinload(Room.devices)
-            )
+    async def test_update(self):
+        async with db.connection():
+            room = await Room.create(name='room 2')
+            await room.save()
 
-            results = await session.execute(stmt)
-            room = results.scalar()
+            room.notes = 'test notes'
+            await room.save()
+            assert room.notes == 'test notes'
 
-        assert('devices' in room.as_dict())
-        assert(type(room.as_dict()['devices']) is list)
+        assert isinstance(room.as_dict(), dict)
+
+
+    async def test_delete(self):
+        async with db.connection():
+            room = await Room.create(name='room 3')
+            await room.save()
+            pk = room.id
+            await room.delete_instance()
+
+            row = await Room.select().where(Room.name == 'room 3')
+            assert len(row) == 0
+
 
 if __name__ == '__main__':
     unittest.main()

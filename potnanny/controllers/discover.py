@@ -1,12 +1,9 @@
-import re
-import asyncio
 import logging
-import potnanny.database as db
-from potnanny.models.interface import ObjectInterface
-from potnanny.plugins.base import BluetoothDevicePlugin
+from potnanny.database import db
+from potnanny.plugins import BluetoothDevicePlugin
 from potnanny.models.device import Device
 from potnanny.utils.scanner import BLEScanner
-from potnanny.locks import LOCKS
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +15,14 @@ class DiscoveryClient:
 
     async def discover(self):
         results = []
-        existing = await ObjectInterface(Device).get_all()
+        existing = await Device.select()
         found = await self.scanner.scan_devices()
+
+        logger.debug(f"found devices: {found}")
+        logger.debug(type(found))
+
         devices = self.recognized_devices([f for f in found])
+        logger.debug(f"recognized devices: {devices}")
         for entry in devices:
             device, interface, attrs = entry
             if self.is_existing_device(existing, device, interface):
@@ -48,43 +50,23 @@ class DiscoveryClient:
             except:
                 pass
 
+            logger.debug(f"new device: {opts}")
             results.append(opts)
 
-        for d in results:
-            try:
-                obj = Device(**d)
-                await obj.insert()
-            except Exception as x:
-                logger.warning(x)
+        if results:
+            async with db.connection():
+                for d in results:
+                    print(f"new device {d}")
+                    try:
+                        obj = await Device.create(**d)
+                        await obj.save()
+                    except Exception as x:
+                        logger.warning(x)
 
         return results
 
 
-    async def insert_devices(self, devices):
-        async def db_execute(f):
-            """execute the session function"""
-
-            if 'db' in LOCKS and LOCKS['db'] is not None:
-                async with LOCKS['db']:
-                    await f()
-            else:
-                await f()
-
-        async def perform():
-            try:
-                async with db.session() as session:
-                    for d in devices:
-                        obj = Device(**d)
-                        session.add(obj)
-
-                    await session.commit()
-            except Exception as x:
-                logger.warning(x)
-
-        await db_execute(perform)
-
-
-    def recognized_devices(self, devices):
+    def recognized_devices(self, devices:list) -> list:
         """
         Return a filtered list of ble devices that we can communicate with.
         [(device, interface_name), ]
@@ -93,33 +75,27 @@ class DiscoveryClient:
         results = []
         for d in devices:
             fingerprint = {'address': d.address, 'name': d.name}
+            logger.debug(f" device: {d}, fingerprint: {fingerprint}")
+
             for p in BluetoothDevicePlugin.plugins:
                 attrs = None
-                try:
-                    if p.recognize_this(fingerprint):
-                        found = '.'.join((p.__module__, p.__name__))
-                        try:
-                            attrs = p.attributes
-                        except:
-                            pass
-                        results.append((d, found, attrs))
-                except:
-                    continue
+
+                if p.recognize_this(fingerprint):
+                    found = '.'.join((p.__module__, p.__name__))
+                    try:
+                        attrs = p.attributes
+                    except:
+                        attrs = {}
+
+                    results.append((d, found, attrs))
 
         return results
 
 
-    def is_existing_device(self, existing, device, interface):
+    def is_existing_device(self, existing:list, device, interface):
         """
         Compare ble-device to list of existing devices, and see if match
         exists already
-
-        args:
-            - list of existing devices
-            - device to inspect
-            - plugin interface
-        returns:
-            - bool
         """
 
         def match_exists(e, plugin, address):

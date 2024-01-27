@@ -1,15 +1,13 @@
 import os
 
+
 PIDFILE = os.path.expanduser('~/.potnanny.pid')
 
 
-def is_running(path=PIDFILE):
+def is_running(path=PIDFILE) -> int:
     """
-    Check if an instance of the app is already running.
-    args:
-        - path to pidfile
-    returns:
-        - pid of running program, or 0 if not running.
+    Check if an instance of the app is already running. Returns pid of process,
+    or 0 if not running.
     """
 
     if os.path.exists(path):
@@ -26,7 +24,7 @@ def is_running(path=PIDFILE):
     return 0
 
 
-def pid_from_file(path=PIDFILE):
+def pid_from_file(path:str = PIDFILE):
     """
     Get pid number from named file
     args:
@@ -39,7 +37,7 @@ def pid_from_file(path=PIDFILE):
         return int(fh.read())
 
 
-def pid_to_file(pid, path=PIDFILE):
+def pid_to_file(pid:int, path:str = PIDFILE):
     """
     Write a pid to named file
     args:
@@ -51,7 +49,7 @@ def pid_to_file(pid, path=PIDFILE):
         fh.write(f"{pid}\n")
 
 
-def check_pid(pid: int):
+def check_pid(pid:int):
     """
     Check For the existence of a running unix pid
     args:

@@ -9,7 +9,7 @@ from daemon import DaemonContext
 from potnanny.utils.pids import PIDFILE, is_running, pid_to_file
 from potnanny.utils import resolve_path
 from potnanny.config import Config
-from potnanny.app import init_app
+from potnanny.app import run_app
 
 
 args = None
@@ -32,7 +32,7 @@ def main():
 
 
 def start():
-    print("Starting service")
+    print("Sevice starting")
     pid = is_running()
     if pid:
         sys.stderr.write("Service already running (pid {pid})\n")
@@ -41,7 +41,7 @@ def start():
 
 
 def stop(die_absent=True):
-    print("Stopping service")
+    print("Service stopping")
     pid = is_running()
     if not pid:
         sys.stderr.write("Service not running\n")
@@ -49,12 +49,11 @@ def stop(die_absent=True):
             sys.exit(1)
     else:
         try:
-            # modified to kill the whole process group
-            # os.kill(pid, signal.SIGTERM)
-            pgid = os.getpgid(pid)
-            os.killpg(pgid, signal.SIGTERM)
-        except:
-            pass
+            # pgid = os.getpgid(pid)
+            # os.killpg(pgid, signal.SIGTERM)
+            os.kill(pid, signal.SIGKILL)
+        except Exception as x:
+            print(x)
         finally:
             os.unlink(PIDFILE)
         print("Service stopped")
@@ -92,7 +91,7 @@ def start_service():
         config = Config()
         pid_to_file(os.getpid())
         init_logging(config.log_path)
-        asyncio.run(init_app(config))
+        asyncio.run(run_app(config))
 
 
 def init_logging(path=None):
@@ -111,7 +110,6 @@ def init_logging(path=None):
         level = logging.DEBUG
         logging.basicConfig(level=level, format=fmt)
         logging.getLogger('aiosqlite').setLevel(logging.INFO)
-        logging.getLogger('aiohttp').setLevel(logging.WARNING)
         logging.getLogger('bleak').setLevel(logging.INFO)
     else:
         level = logging.WARNING

@@ -5,7 +5,7 @@ Potnanny turns your Raspberry Pi into powerful grow-room automation system
 using inexpensive, off-the-shelf Bluetooth sensors, power outlets, and other devices.
 
 ## Description
-Potnanny provides a simple dashboard for monitoring and insight into your grow environment.
+Potnanny provides a simple dashboard for monitoring your grow environment.
 
 <img src="/docs/screenshots/dashboard.png" width="400">
 
@@ -13,21 +13,21 @@ Clicking on any of the dashboard values will show graph trends.
 
 <img src="/docs/screenshots/graph.png" width="400">
 
-## Advanced Controls
-Beyond basic monitoring, Potnanny also makes it possible to configure Schedules and Smart Controls of the bluetooth power outlets.
+## Smart Controls
+Beyond basic monitoring, Potnanny also makes it possible to configure Schedules and Measurment Controls of the bluetooth power outlets.
 
-A Smart Control is like saying "When the humidity reading of a sensor is over 65%, turn the dehumidifier outlet on".
+A Measurement Control is like saying "When the humidity reading of a sensor is over 65%, turn the dehumidifier outlet on".
 
-Potnanny's Advanced Controls:
-- Turn *dumb* devices (humidifiers, fans, etc) into *smart* devices.
+Potnanny's Measurement Controls:
+- Turn simple devices (humidifiers, fans, etc) into *smart* devices.
 - Saves energy. Turning fans and dehumidifiers on only when actually needed reduces energy consumption.
-- Automate your irrigation, ventilation, and temperature controls to maintain an ideal growing environment.
+- Automate your irrigation, ventilation, and temperature controls to maintain the ideal growing environment.
 
 ## Reliable
-Potnanny does not rely on WiFi or cloud-connectivity. So even if your internet goes down, Potnanny will continue to work to control your environment. Once your Potnanny system is configured the way you want, it is very much a *set it and forget it* system.
+Potnanny does not rely on WiFi or cloud-connectivity. So even if your home internet goes down, Potnanny will continue working to maintain your environment. Once your Potnanny system is configured the way you want, it is very much a *set it and forget it* system. It is not fancy. It just does what you want.
 
 ## Supported Bluetooth Devices
-This list includes only hygrometers, soil sensors, and power outlets that we have tested and found to have good, stable communication.
+This list includes only hygrometers, soil sensors, and power outlets that we have tested and found to have good stable communication.
 
 - Govee H5080 Bluetooth Outlet
 - Govee H5082 Bluetooth Dual Outlet
@@ -36,7 +36,7 @@ This list includes only hygrometers, soil sensors, and power outlets that we hav
 - Xiaomi Mi Bluetooth Soil Sensor
 - Xiaomi Mi MJHT Bluetooth Hygrometer
 
-We are constantly working to write new plugins for bluetooth devices. So this list may grow over time.
+We are constantly looking out for new bluetooth devices that would be useful to home growers, and writing new plugins. So this list will grow in the future.
 
 ## Expandable Plugin System
 All communication to bluetooth and GPIO devices is based on plugins.
@@ -55,11 +55,11 @@ But it will work on most models with integrated WiFi and Bluetooth.
 - Raspberry Pi 4
 
 ## OS Requirements
-32-bit Raspberry Pi OS Bullseye is the minimum recommended OS.
+32-bit Raspberry Pi OS "Bookworm" (Debian 12.0) is the minimum recommended OS.
 64-bit versions will not work on the original Raspberry Pi Zero W
 
 ## Python Requirements
-Python 3.9 is the minimum requirement (included with Raspberry Pi OS Bullseye version)
+Python 3.11 is the minimum requirement (included with Raspberry Pi OS Bookworm version)
 
 ## Installation
 ```

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>Features</h3>
+
+{% if data %}
+    <div class="row row-cols-1 row-cols-lg-2 mt-3">
+    {% for license in data %}
+        <div class="col mb-2">
+            <div class="card">
+                <div class="card-header">
+                    <span class="float-end text-muted fw-light" style="font-size: 0.85em;">{{ license.created }}</span>
+                    {{ license.name }}
+                </div>
+                <div class="card-body">{{ license.description }}</div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+
+    <div class="mt-4">
+        <a href="{{ url_for('features.import_key') }}" class="btn btn-outline-primary">Import Feature Key</a>
+    </div>
+{% endblock %}

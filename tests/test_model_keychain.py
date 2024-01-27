@@ -1,83 +1,62 @@
-import asyncio
 import unittest
+import peewee
 from unittest import IsolatedAsyncioTestCase
-import potnanny.database as db
-from potnanny.models.interface import ObjectInterface
+from potnanny.database import db
 from potnanny.models.keychain import Keychain
 
 
-class TestKeychainModel(IsolatedAsyncioTestCase):
-# ###############################################
+async def init_tables():
+    db.init('aiosqlite:////tmp/test.db')
+    async with db.connection():
+        await Keychain.create_table()
+
+
+class TestModels(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
-        uri = 'sqlite+aiosqlite://'
-        await db.init_db(uri)
+        await init_tables()
 
     async def asyncTearDown(self):
         pass
 
     async def test_create(self):
-        opts = {
-            'name': 'mail-auth',
-            'attributes': {
-                'user': 'test@gmail.com',
-                'auth_token': '1234567890',
-                'refresh_token': '1234567890',
-            }
-        }
-        obj = Keychain(**opts)
-
-        await obj.insert()
-        assert obj.id >= 0
-        assert 'user' in obj.attributes
-        assert obj.attributes['user'] == 'test@gmail.com'
-
-
-    async def test_get_id(self):
-        obj = await ObjectInterface(Keychain).get_by_id(1)
-        assert obj is not None
-
-
-    async def test_get_name(self):
-        obj = await ObjectInterface(Keychain).get_by_name('settings')
-        assert obj is not None
-
+        async with db.connection():
+            kc = await Keychain.create(name='settings',
+                attributes={'temperature_display': 'F'})
+            await kc.save()
+            assert kc.id > 0
 
     async def test_update(self):
-        opts = {
-            'name': 'mail-auth2',
-            'attributes': {
-                'user': 'test@gmail.com',
-                'auth_token': '1234567890',
-                'refresh_token': '1234567890',
-            }
-        }
-        obj = Keychain(**opts)
-        await obj.insert()
+        async with db.connection():
+            kc = await Keychain.create(name='foo',
+                attributes={'bar': 13, 'baz': 42})
+            await kc.save()
 
-        obj.attributes['user'] = 'modified@gmail.com'
-        await obj.update()
-        assert obj.attributes['user'] == 'modified@gmail.com'
-
+            kc.attributes.update({'baz': 43})
+            await kc.save()
+            assert kc.attributes == {'bar': 13, 'baz': 43}
 
     async def test_delete(self):
-        opts = {
-            'name': 'mail-auth3',
-            'attributes': {
-                'user': 'test@gmail.com',
-                'auth_token': '1234567890',
-                'refresh_token': '1234567890',
-            }
-        }
-        obj = Keychain(**opts)
-        await obj.insert()
-        assert obj.id > 0
+        async with db.connection():
+            kc = await Keychain.create(name='bar',
+                attributes={'one': 1})
+            await kc.save()
+            pk = kc.id
+            await kc.delete_instance()
 
-        pk = obj.id
-        await obj.delete()
+            row = await Keychain.select().where(Keychain.id == pk)
+            assert len(row) == 0
 
-        check = await ObjectInterface(Keychain).get_by_id(pk)
-        assert check is None
+    async def test_unique_name(self):
+        with self.assertRaises(peewee.IntegrityError):
+            async with db.connection():
+                kc1 = await Keychain.create(name='user',
+                    attributes={'name': 'foo'})
+                await kc1.save()
+
+                kc2 = await Keychain.create(name='user',
+                    attributes={'name': 'foo'})
+                await kc2.save()
 
 
 if __name__ == '__main__':

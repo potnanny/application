@@ -1,70 +1,52 @@
 import logging
 import datetime
-from sqlalchemy import func
-from sqlalchemy.orm import Mapped, mapped_column
-from marshmallow import fields
+import marshmallow
+from peewee_aio import fields
+from quart_auth import AuthUser
+from potnanny.database import BaseModel
 from potnanny.models.schemas.safe import SafeSchema
-from potnanny.database import Base
-from potnanny.models.mixins import CRUDMixin
 
 
 logger = logging.getLogger(__name__)
 
 
 class UserSchema(SafeSchema):
-    name = fields.String()
-    password = fields.String(allow_none=True)
-    roles = fields.String(allow_none=True)
+    name = marshmallow.fields.String()
+    password = marshmallow.fields.String(allow_none=True)
+    roles = marshmallow.fields.String(allow_none=True)
 
 
-class User(Base, CRUDMixin):
-    __tablename__ = 'users'
+class User(BaseModel):
+    id = fields.AutoField()
+    name = fields.CharField(24, unique=True)
+    roles = fields.CharField(48, default='user')
+    password = fields.CharField(512)
+    created = fields.DateTimeField(default=datetime.datetime.utcnow)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    password: Mapped[str]
-    roles: Mapped[str] = mapped_column(default='user')
-    is_active: Mapped[bool] = mapped_column(default=True)
-    created: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-
-    # make relationships compatible with asyncio sessions
-    __mapper_args__ = {"eager_defaults": True}
-
-
-    def __repr__(self):
-        return "<User(id={}, name={})>".format(self.id, self.name)
-
+    def __str__(self):
+        return f"<User id={self.id}, name='{self.name}'>"
 
     def as_dict(self):
-        return {
+        data = {
             'id': self.id,
             'name': self.name,
-            'roles': self.roles,
+            'roles': self.notes,
             'created': self.created.isoformat() + "Z",
-            'is_active': self.is_active,
         }
 
 
-    def has_role(self, role):
-        if role in self.roles.split(','):
-            return True
+class SessionUser(AuthUser):
+    def __init__(self, auth_id):
+        super().__init__(auth_id)
+        self._resolved = False
+        self._user = None
 
-        return False
+    async def _resolve(self):
+        if not self._resolved:
+            self._user = await User.get_by_id(int(self._auth_id))
+            self._resolved = True
 
-
-    def add_role(self, role):
-        if not self.has_role(role):
-            if self.roles is None:
-                self.roles = role
-            else:
-                self.roles += ",%s" % role
-
-
-    def remove_role(self, role):
-        atoms = self.roles.split(',')
-        try:
-            atoms.remove(role)
-        except:
-            pass
-
-        self.roles = ",".join(atoms)
+    @property
+    async def name(self):
+        await self._resolve()
+        return self._user.name

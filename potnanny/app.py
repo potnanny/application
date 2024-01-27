@@ -1,66 +1,42 @@
 import asyncio
 import logging
-import signal
-import ssl
-import potnanny.database as db
-from aiohttp import web
+import potnanny.database as database
 from potnanny.config import Config
-from potnanny.api import init_api
-from potnanny.events import STOP_EVENT
-from potnanny.controllers.worker import run_worker, stop_worker
-from potnanny.locks import init_locks
+from potnanny.api import init_application
+from potnanny.controllers.worker import (WORKER_STOP, run_worker,
+    restart_worker, stop_worker)
 from potnanny.utils import resolve_path, load_serial_number
 
 
+# globals #
 logger = logging.getLogger(__name__)
+WEB_TASK = None
+WRKR_TASK = None
 
 
-def handle_kill(*args):
-    """
-    Gracefully allow asyncio processes to quit
-    """
-
-    STOP_EVENT.set()
-
-
-async def init_app(config=Config()):
+async def run_app(config=Config()):
     """
     Initialize and run the app
     """
-
-    # handle signal kill properly
-    signal.signal(signal.SIGTERM, handle_kill)
+    global WEB_TASK
+    global WRKR_TASK
 
     # load sn into global
     await load_serial_number()
 
     # init db and tables
-    await db.init_db(config.database_uri)
+    await database.init_db(config.database_uri, pragmas=(('foreign_keys','1'),))
 
-    await init_locks()
-    app = init_api()
+    # the quart app
+    application = init_application(config)
 
-    # add stop/start for the worker
-    app.on_startup.append(on_startup)
-    app.on_cleanup.append(on_cleanup)
+    # tasks to serve web with hypercorn, and run worker process
+    WEB_TASK = asyncio.create_task(application.run_task(port=8080))
+    WRKR_TASK = asyncio.create_task(restart_worker())
 
-    runner = web.AppRunner(app)
-    await runner.setup()
+    logger.debug(f"web task: {WEB_TASK}")
+    logger.debug(f"worker task: {WRKR_TASK}")
+    logger.debug("entering event loop sleep")
 
-    # we run the webserver on 8080, and let nginx proxy handle the https/ssl
-    site = web.TCPSite(runner, '0.0.0.0', port=8080)
-    await site.start()
-
-    while not STOP_EVENT.is_set():
-        await asyncio.sleep(5)
-
-    logger.debug("Exiting")
-    await runner.cleanup()
-
-
-async def on_startup(app):
-    await run_worker()
-
-
-async def on_cleanup(app):
-    await stop_worker()
+    while True:
+        await asyncio.sleep(1)

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form method="POST" id="myForm">
+        {{ form.csrf_token }}
+        {{ form.username(value=current_user.name) }}
+        <div class="mt-2">
+            {{ form.current.label(class_="form-label") }}
+            {% if form.current.errors %}
+            {{ form.current(class_="form-control is-invalid") }}
+            {% else %}
+            {{ form.current(class_="form-control") }}
+            {% endif %}
+            <div class="invalid-feedback" id="password-feedback">
+                {% for error in form.current.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mt-2">
+            {{ form.password.label(class_="form-label") }}
+            {{ form.password(class_="form-control", onchange="checkSame()") }}
+            <div class="invalid-feedback" id="password-feedback">
+            new password must be at least 8 chars
+            </div>
+
+        </div>
+        <div class="mt-2">
+            {{ form.again.label(class_="form-label") }}
+            {{ form.again(class_="form-control", onchange="checkSame()") }}
+            <div class="invalid-feedback" id="again-feedback">
+            passwords must match
+            </div>
+
+        </div>
+        <div class="row row-cols-2 mt-3">
+            <div class="col">
+                <input id="submit" type="submit" class="w-100 btn btn-outline-primary" disabled value="Reset Password">
+            </div>
+        </div>
+    </form>
+    <script>
+        const checkSame = function() {
+            let p = document.getElementById('password');
+            let a = document.getElementById('again');
+
+            if (p.value.length < 8) {
+                p.classList.add('is-invalid');
+                document.getElementById('submit').disabled = true;
+                return;
+            } else {
+                p.classList.remove('is-invalid');
+            }
+
+            if (p.value != a.value) {
+                a.classList.add('is-invalid');
+                document.getElementById('submit').disabled = true;
+                return;
+            } else {
+                a.classList.remove('is-invalid');
+            }
+
+            document.getElementById('submit').disabled = false;
+        }
+    </script>
+{% endblock %}

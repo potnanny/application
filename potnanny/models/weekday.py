@@ -1,3 +1,6 @@
+import logging
+
+logger = logging.getLogger(__name__)
 
 class WeekdayMap:
     """A utility Class which maps days of week to a numeric value. Used for scheduling.
