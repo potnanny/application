@@ -18,7 +18,7 @@
                     )
                 );
                 showModal(progress);
-                setTimeout(function() { window.location.reload(); }, 12000);
+                setTimeout(function() { window.location.reload(); }, 10000);
 
                 let route = API_URI + "/scan";
                 return fetch(route, {
@@ -62,7 +62,7 @@
 {% if features %}
     {%- if features.attributes.device_limit > data | length -%}
     <div class="mt-3">
-        <a href="javascript:" class="btn btn-outline-primary" onclick="scanNewDevices()">Scan New Devices</a>
+        <a href="javascript:" class="btn btn-outline-primary" onclick="scanNewDevices()">Discover New Devices</a>
     </div>
     {%- endif -%}
 {% endif %}

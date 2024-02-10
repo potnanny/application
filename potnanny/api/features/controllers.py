@@ -1,7 +1,11 @@
 import asyncio
+import logging
 from potnanny.database import db
 from potnanny.models.keychain import Keychain, KeychainSchema
 from potnanny.models.license import License, LicenseSchema
+
+
+logger = logging.getLogger(__name__)
 
 
 async def load_license(data:dict):

@@ -9,8 +9,8 @@ from jinja2 import TemplateNotFound
 from potnanny.models.device import Device, DeviceSchema
 from potnanny.models.room import Room
 from potnanny.models.keychain import Keychain
-from potnanny.database import db
-from potnanny.locks import LOCKS
+from potnanny.database import db, lock
+from potnanny.ble import lock as ble_lock
 from potnanny.controllers.outlet import switch_device_outlet
 
 
@@ -53,9 +53,10 @@ async def create():
         jsondata = await request.get_json()
         schema = DeviceSchema()
         data = schema.load(jsondata)
-        async with db.connection():
-            obj = await Device.create(**data)
-            await obj.save()
+        async with lock:
+            async with db.connection():
+                obj = await Device.create(**data)
+                await obj.save()
         return jsonify({"status": "ok", "msg": obj.as_dict()}), 201
     except Exception as x:
         return jsonify({"status": "error", "msg": str(x) }), 500
@@ -79,11 +80,12 @@ async def patch(pk):
         jsondata = await request.get_json()
         schema = DeviceSchema()
         data = schema.load(jsondata)
-        async with db.connection():
-            obj = await Device.get_by_id(pk)
-            for k, v in data.items():
-                setattr(obj, k, v)
-            await obj.save()
+        async with lock:
+            async with db.connection():
+                obj = await Device.get_by_id(pk)
+                for k, v in data.items():
+                    setattr(obj, k, v)
+                await obj.save()
 
         return jsonify({"status": "ok", "msg": obj.as_dict()}), 200
     except Exception as x:
@@ -95,13 +97,14 @@ async def patch(pk):
 @bp.route('/api/v1.0/devices/<int:pk>', methods=['DELETE'])
 @login_required
 async def delete(pk):
-    async with db.connection():
-        try:
-            obj = await Device.get_by_id(pk)
-            await obj.delete_instance()
-            await flash("Device deleted", "info")
-        except:
-            pass
+    async with lock:
+        async with db.connection():
+            try:
+                obj = await Device.get_by_id(pk)
+                await obj.delete_instance()
+                await flash("Device deleted", "info")
+            except:
+                pass
 
     return jsonify({
         "status": "ok", "msg": ""}), 200
@@ -156,10 +159,7 @@ async def get_keycode(pk):
 
     secret = None
     try:
-        if 'bluetooth' in LOCKS and LOCKS['bluetooth'] is not None:
-            async with LOCKS['bluetooth'] as lock:
-                secret = await device.plugin.scan_key()
-        else:
+        async with ble_lock:
             secret = await device.plugin.scan_key()
     except Exception as x:
         logger.debug(x)

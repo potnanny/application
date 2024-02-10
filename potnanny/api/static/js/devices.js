@@ -97,8 +97,12 @@ var Device = {
             console.log(err);
         })
     },
-    pollCurrent: function() {
-        let route = API_URI + "/devices/" + Device.current.id + "/poll";
+    pollCurrent: function(pk = undefined) {
+        if (! pk) {
+            pk = Device.current.id;
+        }
+        let route = API_URI + "/devices/" + pk + "/poll";
+        console.log(route);
         return fetch(route, {
             method: "POST",
             credentials: 'same-origin',
@@ -191,14 +195,13 @@ var deviceFormModal = function(id) {
     var form = m("form", {
         onsubmit: function(e) {
             e.preventDefault();
-            hideModal();
+            setTimeout(function() {
+                Device.pollCurrent(Device.current.id);
+            }, 200);
             Device.save();
-            if (newRoom == true) {
-                setTimeout(function() {
-                    Device.pollCurrent();
-                }, 750);
-            }
-            setTimeout(function() { window.location.reload(); }, 1500);
+            hideModal();
+            setTimeout(function() { window.location.reload(); }, 6000);
+
         }}, [
       m("input[type=text][required].form-control", {
         id: "name",
@@ -262,7 +265,7 @@ var deviceFormModal = function(id) {
               if (confirm("Are you sure you want to delete this device and all of its data?")) {
                 Device.delete();
                 hideModal();
-                setTimeout(function() { window.location.reload(); }, 2500);
+                setTimeout(function() { window.location.reload(); }, 3000);
               }
             }
           }, "Delete")

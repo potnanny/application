@@ -9,8 +9,9 @@ from weakref import WeakSet
 from potnanny.utils.password import hash_password, verify_password
 
 
-logger = logging.getLogger(__name__)
+# lock used for db inserts
 lock = asyncio.Lock()
+logger = logging.getLogger(__name__)
 
 
 class Database(Manager):
@@ -84,7 +85,7 @@ async def init_tables():
                     'plugin_path': os.path.expanduser('~/potnanny/plugins'),
                     'leaf_offset': -2,
                     'storage_days': 7,
-                    'graph_hours': 18,
+                    'graph_hours': 24,
                 }
             }
             obj = await Keychain.create(**s_opts)

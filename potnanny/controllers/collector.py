@@ -117,7 +117,7 @@ class Collector:
         if ids is None:
             self.devices = await Device.select().where(Device.room_id != None)
         elif isinstance(ids, int):
-            result = await Device.get_by_id(int)
+            result = await Device.get_by_id(ids)
             self.devices = [result]
         elif isinstance(ids, list):
             self.devices = await Device.select().where(Device.id.in_(ids))
@@ -136,7 +136,7 @@ class Collector:
                 try:
                     if found[d.id] is not None:
                         continue
-                    
+
                     if d.attributes['address'].upper() != addr.upper():
                         continue
 

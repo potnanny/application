@@ -107,7 +107,7 @@ var roomNameModal = function(id = undefined) {
             setTimeout(function() { Room.loadList(); }, 250);
             setTimeout(function() { window.location.reload(); }, 500);
         }}, [
-        m("input[type=text][required][placeholder=Device Name].form-control", {
+        m("input[type=text][required][placeholder=Room Name].form-control", {
             id: "roomname",
             value: Room.current.name,
             onchange: function(e) {
@@ -127,8 +127,8 @@ var roomNotesModal = function(id = undefined) {
         onsubmit: function(e) {
             e.preventDefault();
             Room.current.notes = document.getElementById('roomnotes').value;
-            Room.save();
             hideModal();
+            Room.save();
             Room.current = ROOM_DEFAULT;
             Room.loadList();
         }}, [
@@ -144,4 +144,4 @@ var roomNotesModal = function(id = undefined) {
 
 
 /** PRELOAD MODELS **/
-setTimeout(function() { Room.loadList(); }, 300);
+setTimeout(function() { Room.loadList(); }, 250);
