@@ -6,9 +6,7 @@ from quart import (Blueprint, jsonify, render_template, abort, request, flash,
 from quart_auth import login_required
 from jinja2 import TemplateNotFound
 from potnanny.models.control import Control, ControlSchema
-from potnanny.database import db
-from potnanny.locks import LOCKS
-
+from potnanny.database import db, lock
 
 logger = logging.getLogger(__name__)
 bp = Blueprint('controls', __name__)
@@ -32,9 +30,10 @@ async def create():
         jsondata = await request.get_json()
         schema = ControlSchema()
         data = schema.load(jsondata)
-        async with db.connection():
-            obj = await Control.create(**data)
-            await obj.save()
+        async with lock:
+            async with db.connection():
+                obj = await Control.create(**data)
+
         await flash("Control created", "info")
         return jsonify({"status": "ok", "msg": obj.as_dict()}), 201
     except Exception as x:
@@ -59,11 +58,12 @@ async def patch(pk):
         jsondata = await request.get_json()
         schema = ControlSchema()
         data = schema.load(jsondata)
-        async with db.connection():
-            obj = await Control.get_by_id(pk)
-            for k, v in data.items():
-                setattr(obj, k, v)
-            await obj.save()
+        async with lock:
+            async with db.connection():
+                obj = await Control.get_by_id(pk)
+                for k, v in data.items():
+                    setattr(obj, k, v)
+                await obj.save()
 
         return jsonify({"status": "ok", "msg": obj.as_dict()}), 200
     except Exception as x:
@@ -75,13 +75,14 @@ async def patch(pk):
 @bp.route('/api/v1.0/controls/<int:pk>', methods=['DELETE'])
 @login_required
 async def delete(pk):
-    async with db.connection():
-        try:
-            obj = await Control.get_by_id(pk)
-            await obj.delete_instance()
-            await flash("Control deleted", "info")
-        except:
-            pass
+    async with lock:
+        async with db.connection():
+            try:
+                obj = await Control.get_by_id(pk)
+                await obj.delete_instance()
+                await flash("Control deleted", "info")
+            except:
+                pass
 
     return jsonify({
         "status": "ok", "msg": ""}), 200

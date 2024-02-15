@@ -35,7 +35,7 @@ def start():
     print("Sevice starting")
     pid = is_running()
     if pid:
-        sys.stderr.write("Service already running (pid {pid})\n")
+        sys.stderr.write(f"Service already running (pid {pid})\n")
         sys.exit(1)
     start_service()
 
