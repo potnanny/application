@@ -254,6 +254,22 @@ var deviceFormModal = function(id) {
           }, "Capture")
         ])
       : null,
+      m("div.mt-4.row.row-cols-2.mt-2", [
+        m("div.col", [
+          m("label[for=plugin1].form-label", "Plugin"),
+          m("input[type=text][disabled].form-control", {
+            id: 'plugin1',
+            value: Device.current.interface }),
+        ]),
+        m("div.col", [
+          m("label[for=address1].form-label", "Address"),
+          ('address' in Device.current.attributes) ?
+            m("input[type=text][disabled].form-control", {
+              id: 'address1',
+              value: Device.current.attributes.address })
+          : null
+        ]),
+      ]),
       m("div.mt-4.row.row-cols-2", [
         m("div.col",
           m("button[type=submit].submit.btn.btn-primary.form-control", "Save")

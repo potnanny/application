@@ -23,7 +23,7 @@ DEFAULT_GRAPH = {
                 'display': True,
                 'text': None,
             }
-        }
+        },
     },
     'data': {
         'datasets': []
@@ -44,7 +44,10 @@ async def room_graph(pk:int, mtype:str, hours:int = 12):
 
     now = datetime.datetime.utcnow()
     start = str(now - datetime.timedelta(hours=hours))
-    graph = copy.deepcopy(DEFAULT_GRAPH);
+    graph = copy.deepcopy(DEFAULT_GRAPH)
+
+    # one label tick per hour only
+    # graph['options']['scales']['xAxes']['ticks']['maxTicksLimit'] = hours
 
     sql = """
         SELECT
@@ -119,7 +122,10 @@ async def device_graph(pk:int, mtype:str, hours:int = 12):
 
     now = datetime.datetime.utcnow()
     start = str(now - datetime.timedelta(hours=hours))
-    graph = copy.deepcopy(DEFAULT_GRAPH);
+    graph = copy.deepcopy(DEFAULT_GRAPH)
+
+    # one label tick per hour only
+    # graph['options']['scales']['xAxes']['ticks']['maxTicksLimit'] = hours
 
     sql = """
         SELECT

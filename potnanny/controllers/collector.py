@@ -125,7 +125,7 @@ class Collector:
         return
 
 
-    async def scan_advertised(self, devices:list, seconds:int = 30) -> dict:
+    async def scan_advertised(self, devices:list, seconds:int = 40) -> dict:
         stop = asyncio.Event()
         timeout = self.now + datetime.timedelta(seconds=seconds)
         found = {d.id:None for d in devices}
