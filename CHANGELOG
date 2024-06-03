@@ -1,3 +1,5 @@
+0.4.12      Corrected db cleanup function bug
+
 0.4.2       Fixes to Schedule controls, and room graphing
 
 0.4.1       Changes to Bleak scanner (use context mgr rather than stop/start),

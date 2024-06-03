@@ -15,7 +15,7 @@ async def purge_measurements(cutoff:datetime.datetime):
 
     try:
         async with db.connection():
-            query = Measurement.delete().where(Measurement.created < cutoff)
-            results = await query.execute()
+            result = await Measurement.delete().where(
+                Measurement.created < cutoff)
     except Exception as x:
         logger.warning(x)

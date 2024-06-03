@@ -46,15 +46,15 @@
                     {%- for key in device.measurements.keys() | sort -%}
                     <div class="col text-center mb-1">
                         {%- if key.startswith('outlet') -%}
-                        <div class="btn-group mb-1 mt-1">
+                        <div class="mb-1 mt-1">
                             <button type="button" class="btn btn-outline-primary py-0 px-2 fs-5">
-                                <i id="device-{{ device.id }}-{{ key }}" class="bi bi-toggle-{%- if device.measurements[key] == 0 -%}off{% else %}on{%- endif -%}" onclick="toggleOutlet({{ device.id }}, '{{ key }}')"></i>
+                                <i id="device-{{ device.id }}-{{ key }}" class="bi bi-toggle-{%- if device.measurements[key] == 0 -%}off{% else %}on{%- endif -%}" onclick="toggleOutlet({{ device.id }}, '{{ key }}')" style="font-size: 1.15em"></i>
                             </button>
                             <button type="button" class="btn btn-outline-primary py-0 px-2 fs-5">
-                                <i class="bi bi-dpad" onclick="controlForm({{ device.id }}, '{{ key }}')"></i>
+                                <i class="bi bi-dpad" onclick="controlForm({{ device.id }}, '{{ key }}')" style="font-size: 1.15em"></i>
                             </button>
                             <button type="button" class="btn btn-outline-primary py-0 px-2 fs-5">
-                                <i class="bi bi-file-bar-graph" onclick="buildModalChart('{{ url_for('graphs.device', pk=device.id, measurement=key, hours=12) }}')"></i>
+                                <i class="bi bi-file-bar-graph" onclick="buildModalChart('{{ url_for('graphs.device', pk=device.id, measurement=key, hours=12) }}')" style="font-size: 1.15em"></i>
                             </button>
                         </div>
                         {% else %}
