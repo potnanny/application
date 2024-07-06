@@ -56,6 +56,7 @@ async def init_tables():
     from .models.control import Control
     from .models.license import License
     from .models.user import User
+    from .models.action import Action, ActionTrigger
 
     db.register(Room)
     db.register(Device)
@@ -64,6 +65,8 @@ async def init_tables():
     db.register(Control)
     db.register(License)
     db.register(User)
+    db.register(Action)
+    db.register(ActionTrigger)
 
     async with db.connection():
         await Room.create_table()
@@ -73,6 +76,8 @@ async def init_tables():
         await Control.create_table()
         await User.create_table()
         await License.create_table()
+        await Action.create_table()
+        await ActionTrigger.create_table()
 
         try:
             # create default settings

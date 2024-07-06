@@ -1,3 +1,5 @@
+import os
+import base64
 import string
 import secrets
 from werkzeug.security import generate_password_hash, check_password_hash

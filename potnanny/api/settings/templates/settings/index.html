@@ -3,7 +3,7 @@
 {% block head %}
     {{ super() }}
     <script>
-        var CSRF_TOKEN = "{{ csrf_token() }}";
+        const CSRF_TOKEN = "{{ csrf_token() }}";
     </script>
     <script src="{{ url_for('static', filename='js/min/common.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/min/modals.min.js') }}"></script>
@@ -16,48 +16,77 @@
     <h3 class="mb-3">{{ title }}</h3>
 {%- endif -%}
 {%- if data -%}
-    <h6 class="mb-3">Application Settings</h6>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="temperatureDisplayForm()" class="btn btn-outline-primary w-100 mb-1">Temperature Display</a>
+    <details>
+        <summary class="mt-2">Application Settings</summary>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="temperatureDisplayForm()" class="btn btn-sm btn-outline-primary w-100 mb-1">Temperature Display</a>
+            </div>
         </div>
-    </div>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="pollingIntervalForm()" class="btn btn-outline-primary w-100 mb-1">Polling Interval</a>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="pollingIntervalForm()" class="btn btn-sm btn-outline-primary w-100 mb-1">Polling Interval</a>
+            </div>
         </div>
-    </div>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="leafOffsetForm()" class="btn btn-outline-primary w-100 mb-1">Leaf Temperature Offset</a>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="leafOffsetForm()" class="btn btn-sm btn-outline-primary w-100 mb-1">Leaf Temperature Offset</a>
+            </div>
         </div>
-    </div>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="storageDaysForm()" class="btn btn-outline-primary w-100 mb-1">Measurement Retention</a>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="storageDaysForm()" class="btn btn-sm btn-outline-primary w-100 mb-1">Measurement Retention</a>
+            </div>
         </div>
-    </div>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="graphHoursForm()" class="btn btn-outline-primary w-100 mb-1">Graph Hours</a>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="graphHoursForm()" class="btn btn-sm btn-outline-primary w-100 mb-1">Graph Hours</a>
+            </div>
         </div>
-    </div>
-    <h6 class="mb-3 mt-3">Add-in Features</h6>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="{{ url_for('features.show_features') }}" class="btn btn-outline-primary w-100 mb-1">Features</a>
+    </details>
+
+    <details>
+        <summary class="mt-2">Add-in Features</summary>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="{{ url_for('plugins.index') }}" class="btn btn-sm btn-outline-primary w-100 mb-1">Plugins</a>
+            </div>
         </div>
-    </div>
-    <h6 class="mb-3 mt-3">Utilities</h6>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="restartWorker()" class="btn btn-outline-primary w-100 mb-1">Restart Worker</a>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="{{ url_for('keychains.get_view') }}" class="btn btn-sm btn-outline-primary w-100 mb-1">Keychains</a>
+            </div>
         </div>
-    </div>
-    <div class="row row-cols-1 row-cols-md-2">
-        <div class="col">
-        <a href="javascript:" onclick="serialNumberForm()" class="btn btn-outline-primary w-100 mb-1">Serial Number</a>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="{{ url_for('features.show_features') }}" class="btn btn-sm btn-outline-primary w-100 mb-1">Features</a>
+            </div>
         </div>
-    </div>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="{{ url_for('actions.index') }}" class="btn btn-sm btn-outline-primary w-100 mb-1">Actions</a>
+            </div>
+        </div>
+    </details>
+
+    <details>
+        <summary class="mt-2">Utilities</summary>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="{{ url_for('errors.index') }}" class="btn btn-sm btn-outline-primary w-100 mb-1">Error Log</a>
+            </div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="restartWorker()" class="btn btn-sm btn-outline-primary w-100 mb-1">Restart Worker</a>
+            </div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2">
+            <div class="col">
+            <a href="javascript:" onclick="serialNumberForm()" class="btn btn-sm btn-outline-primary w-100 mb-1">Pi Serial Number</a>
+            </div>
+        </div>
+    </details>
+
 {%- endif -%}
 {% endblock %}

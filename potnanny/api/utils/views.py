@@ -5,6 +5,7 @@ from jinja2 import TemplateNotFound
 from potnanny.controllers.discover import discover_new_devices
 from potnanny.controllers.worker import restart_worker
 from potnanny.utils.serial import load_serial_number
+from potnanny.utils.network import load_local_address
 
 
 logger = logging.getLogger(__name__)
@@ -32,4 +33,11 @@ async def restart():
 @login_required
 async def serial():
     result = await load_serial_number()
+    return jsonify({"status": "ok", "msg": result}), 200
+
+
+@bp.route('/api/v1.0/address', methods=['GET'])
+@login_required
+async def get_address():
+    result = await load_local_address()
     return jsonify({"status": "ok", "msg": result}), 200

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if title %}
+    <h3 class="mb-3">{{ title }}</h3>
+{% endif %}
+{%- if data -%}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date Time</th>
+                <th>Service</th>
+                <th>Level</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in data %}
+            <tr>
+                <td>{{ e.created }}</td>
+                <td>{{ e.service }}</td>
+                <td>{{ e.level }}</td>
+                <td>{{ e.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+0 errors to report
+{%- endif -%}
+
+
+{% endblock %}

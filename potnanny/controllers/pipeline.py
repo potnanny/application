@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import logging
+from potnanny.models.device import Device
 from potnanny.plugins import PipelinePlugin
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,19 @@ class Pipeline:
         """
 
         tasks = []
+
+        # add device and room name to the measurement data
+        devices = await Device.select()
+        for m in measurements:
+            for d in devices:
+                try:
+                    if d.id == m['device_id']:
+                        m['device_name'] = d.name
+                        room = await d.room
+                        m['room_name'] = room.name
+                except:
+                    pass
+
         for p in PipelinePlugin.plugins:
             logger.debug("Queueing pipeline job: %s" % p)
             tasks.append(p().input(copy.deepcopy(measurements)))

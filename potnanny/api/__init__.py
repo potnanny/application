@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 def init_application(config):
-    logger.debug(f"App basedir: {BASEDIR}")
     app = Quart(__name__, root_path=BASEDIR)
     configure_app(app)
     csrf = CSRFProtect(app)
@@ -26,8 +25,8 @@ def init_application(config):
 
 
 def configure_app(app):
-    app.config['SECRET_KEY'] = os.getenv('POTNANNY_SECRET')
-    app.config['WTF_CSRF_SECRET_KEY'] = os.getenv('POTNANNY_SECRET')
+    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET')
+    app.config['WTF_CSRF_SECRET_KEY'] = os.getenv('FLASK_SECRET')
     app.config['WTF_CSRF_ENABLED'] = True
     app.config['EXPLAIN_TEMPLATE_LOADING'] = False
 
@@ -54,6 +53,9 @@ def load_blueprints(app):
     from potnanny.api.features.views import bp as features
     from potnanny.api.auth.views import bp as auth
     from potnanny.api.about.views import bp as about
+    from potnanny.api.errors.views import bp as errors
+    from potnanny.api.actions.views import bp as actions
+    from potnanny.api.plugins.views import bp as plugins
 
     app.register_blueprint(environments)
     app.register_blueprint(rooms)
@@ -66,6 +68,9 @@ def load_blueprints(app):
     app.register_blueprint(features)
     app.register_blueprint(auth)
     app.register_blueprint(about)
+    app.register_blueprint(errors)
+    app.register_blueprint(actions)
+    app.register_blueprint(plugins)
 
 
 def load_views():
@@ -84,6 +89,10 @@ def load_views():
     from potnanny.api.features import views
     from potnanny.api.auth import views
     from potnanny.api.about import views
+    from potnanny.api.errors import views
+    from potnanny.api.actions import views
+    from potnanny.api.plugins import views
+
 
 
 def load_handlers(app):

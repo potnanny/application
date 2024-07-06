@@ -171,7 +171,7 @@ const submitControlForm = function() {
     Control.save();
     hideModal();
     Control.current = CONTROL_DEFAULT;
-    setTimeout(function() { window.location.reload(); }, 1200);
+    setTimeout(function() { window.location.reload(); }, 1000);
     Control.loadList();
 }
 
@@ -179,8 +179,7 @@ const submitControlForm = function() {
 const controlForm = function(device, outletName) {
     device = parseInt(device);
     let outlet = parseInt(outletName.split("_")[1]);
-    
-    console.log("Device:" + device + " Outlet:" + outlet);
+
     Device.load(device);
     Control.loadDeviceOutlet(device, outlet);
     const room = Number(Device.current.room_id);

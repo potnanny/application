@@ -108,12 +108,19 @@ def init_logging(path=None):
 
     if args.debug:
         level = logging.DEBUG
-        logging.basicConfig(level=level, format=fmt)
+        logging.basicConfig(
+            level=level,
+            format=fmt,
+            datefmt='%Y-%m-%d %H:%M:%S')
         logging.getLogger('aiosqlite').setLevel(logging.INFO)
         logging.getLogger('bleak').setLevel(logging.INFO)
     else:
         level = logging.WARNING
-        logging.basicConfig(filename=path, level=level, format=fmt)
+        logging.basicConfig(
+            filename=path,
+            level=level,
+            format=fmt,
+            datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def parse_args():
