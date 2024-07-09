@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name='potnanny',
-    version='0.5.0',
+    version='0.5.1',
     python_requires=">=3.11",
     packages=setuptools.find_packages(),
     description='Potnanny grow room automation controller.',
