@@ -1,3 +1,9 @@
+0.5.2       Added autoescape TRUE for templates, for security.
+
+0.5.1       Fix to Action manager
+
+0.5.0       Added Action handler back into code, and fixed keychain forms
+
 0.4.12      Corrected db cleanup function bug
 
 0.4.2       Fixes to Schedule controls, and room graphing
