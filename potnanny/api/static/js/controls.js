@@ -201,7 +201,7 @@ const controlForm = function(device, outletName) {
                 required: true,
                 value: Control.current.name,
                 onchange: function(e) {
-                    Control.current.name = e.target.value;
+                    Control.current.name = sanitizeInput(e.target.value);
                 }
             })
         ]),

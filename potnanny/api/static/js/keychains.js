@@ -138,8 +138,8 @@ var keychainFormModal = function(id = undefined) {
             Keychain.current.attributes = {};
             var collection = document.getElementsByClassName('attr-row');
             for (const parent of collection) {
-                var k = parent.querySelector('.attr-key').value;
-                var v = parent.querySelector('.attr-val').value;
+                var k = sanitizeInput(parent.querySelector('.attr-key').value);
+                var v = sanitizeInput(parent.querySelector('.attr-val').value);
                 Keychain.current.attributes[k] = v;
             }
             Keychain.save();
@@ -151,7 +151,7 @@ var keychainFormModal = function(id = undefined) {
             id: "name",
             value: Keychain.current.name,
             onchange: function(e) {
-                Keychain.current.name = e.target.value;
+                Keychain.current.name = sanitizeInput(e.target.value);
             }}
         ),
         m("table.table.table-striped.mt-3", [

@@ -16,3 +16,16 @@ const localizeTimestamps = function() {
         }
     }
 }
+
+const sanitizeInput = function(unsafe, forAttribute) {
+    const ESC_MAP = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return unsafe.replace(forAttribute ? /[&<>'"]/g : /[&<>]/g, function(c) {
+        return ESC_MAP[c];
+    });
+}

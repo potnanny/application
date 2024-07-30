@@ -111,7 +111,7 @@ var roomNameModal = function(id = undefined) {
             id: "roomname",
             value: Room.current.name,
             onchange: function(e) {
-                Room.current.name = e.target.value;
+                Room.current.name = sanitizeInput(e.target.value);
             }
         }),
         m("button[type=submit].submit.btn.btn-primary.mt-2.float-right", "Save")
@@ -126,7 +126,7 @@ var roomNotesModal = function(id = undefined) {
     let form = m("form", {
         onsubmit: function(e) {
             e.preventDefault();
-            Room.current.notes = document.getElementById('roomnotes').value;
+            Room.current.notes = sanitizeInput(document.getElementById('roomnotes').value);
             hideModal();
             Room.save();
             Room.current = ROOM_DEFAULT;

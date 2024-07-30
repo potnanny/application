@@ -231,7 +231,7 @@ var actionFormModal = function(id = undefined) {
                     placeholder: "action name",
                     value: Action.current.name,
                     onchange: function(e) {
-                        Action.current.name = e.target.value;
+                        Action.current.name = sanitizeInput(e.target.value);
                     }}
                 ),
             )

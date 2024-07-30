@@ -178,7 +178,7 @@ var deviceNameModal = function(id = undefined) {
             id: "devicename",
             value: Device.current.name,
             onchange: function(e) {
-                Device.current.name = e.target.value;
+                Device.current.name = sanitizeInput(e.target.value);
             }
         }),
         m("button[type=submit].submit.btn.btn-primary.mt-2.float-right", "Save")
@@ -207,7 +207,7 @@ var deviceFormModal = function(id) {
         id: "name",
         value: Device.current.name,
         onchange: function(e) {
-          Device.current.name = e.target.value;
+          Device.current.name = sanitizeInput(e.target.value);
         }}
       ),
       m("label[for=room].form-label.mt-3", "Room Assignment"),
