@@ -5,9 +5,9 @@
     <script>
         var CSRF_TOKEN = "{{ csrf_token() }}";
     </script>
-    <script src="{{ url_for('static', filename='js/min/common.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/min/modals.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/keychains.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/common.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/min/keychains.min.js') }}"></script>
 {% endblock %}
 
 {% block content %}

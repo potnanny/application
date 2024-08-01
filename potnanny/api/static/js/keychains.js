@@ -1,7 +1,8 @@
 /** DEFAULTS **/
 const KEYCHAIN_DEFAULT = {
     name: null,
-    attributes: {} };
+    attributes: {}
+}
 
 
 /** MODELS **/
@@ -112,15 +113,15 @@ const addAttributeRow = function() {
     }
 
     var myDiv = document.createElement('tr');
-	myDiv.id = "row-" + (lastId + 1);
-	myDiv.className = 'attr-row';
+    myDiv.id = "row-" + (lastId + 1);
+    myDiv.className = 'attr-row';
 
     var html = '<td><input type="text" required class="attr-key form-control"></td>';
     html += '<td><input type="text" required class="attr-val form-control"></td>';
     html += '<td><a class="btn btn-sm" onclick="deleteAttributeRow(\'' + myDiv.id + '\')"><i class="bi bi-trash"></i></a></td>';
 
     myDiv.innerHTML = html;
-	parent.appendChild(myDiv);
+    parent.appendChild(myDiv);
 }
 
 const deleteAttributeRow = function(id) {
@@ -137,7 +138,7 @@ var keychainFormModal = function(id = undefined) {
             e.preventDefault();
             Keychain.current.attributes = {};
             var collection = document.getElementsByClassName('attr-row');
-            for (const parent of collection) {
+            for (var parent of collection) {
                 var k = sanitizeInput(parent.querySelector('.attr-key').value);
                 var v = sanitizeInput(parent.querySelector('.attr-val').value);
                 Keychain.current.attributes[k] = v;
