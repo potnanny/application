@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name='potnanny',
-    version='0.5.4',
+    version='0.5.5',
     python_requires=">=3.11",
     packages=setuptools.find_packages(),
     description='Potnanny grow room automation controller.',
@@ -31,6 +31,7 @@ setuptools.setup(
         'python-daemon',
         'markupsafe',
         'cryptography',
+        'jsmin',
     ],
     package_data = {
         '': ['*.html', '*.css', '*.js', '*.woff2'],

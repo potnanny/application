@@ -2,6 +2,7 @@ import os
 import re
 import argparse
 import glob
+import jsmin
 
 def main():
     files = input_files(args.input)
@@ -18,7 +19,7 @@ def minify_file(path, output_path):
     with open(path, 'r') as h:
         raw = h.read()
 
-    minified = re.sub(r'\s+', ' ', raw)
+    minified = jsmin.jsmin(raw)
     output = os.path.join(args.output, min_name)
     with open(output, 'w') as fh:
         fh.write(minified)
